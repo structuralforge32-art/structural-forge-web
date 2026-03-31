@@ -125,31 +125,40 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
 
     try {
       const url = isAdmin ? '/api/admin/leads' : `/api/suivi/${lead.token}/notes`;
+      const bodyPayload = JSON.stringify({ 
+        id: lead.id, 
+        message: msgObj 
+      });
+
+      console.log('--- ENVOI MESSAGE DEBUG ---');
+      console.log('URL:', url);
+      console.log('ID:', lead.id, 'Token:', lead.token);
+
       const res = await fetch(url, {
         method: isAdmin ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          id: lead.id, 
-          message: msgObj 
-        })
+        body: bodyPayload
       });
+
       const result = await res.json();
+      console.log('Réponse API:', result);
+
       if (res.ok) {
         setNewMessage('');
         const newM = result.messages;
         setMessages(newM);
         if (onUpdate) onUpdate(newM);
       } else {
-        alert(`Erreur: ${result.error || 'Impossible d\'envoyer le message'}`);
+        const errorText = `Statut: ${res.status} (${res.statusText})\nErreur: ${result.error || 'Inconnue'}\nDétails: ${result.details || 'Aucun'}`;
+        alert(`ÉCHEC DE L'ENVOI :\n\n${errorText}`);
       }
     } catch (err) {
-      console.error(err);
-      alert("Erreur de connexion au serveur.");
+      console.error('CRASH CLIENT SENDMESSAGE:', err);
+      alert(`ERREUR CRITIQUE NAVIGATEUR :\n\n${err.message}\nConsultez la console F12.`);
     } finally {
       setIsSending(false);
     }
   };
-
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;

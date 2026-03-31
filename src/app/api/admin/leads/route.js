@@ -18,19 +18,25 @@ export async function PUT(req) {
     const body = await req.json();
     const { id, status, admin_notes, client_notes, internal_notes, quote_amount, message, clearMessages, markAsRead } = body;
     
-    console.log('API Admin Lead Update:', { id, status, hasMessage: !!message });
+    const leadId = Number(id);
+    console.log('--- API ADMIN LEADS PUT START ---');
+    console.log('Payload reçue:', { id, leadId, status, hasMessage: !!message });
 
-    if (!id) {
-      return NextResponse.json({ error: 'ID manquant' }, { status: 400 });
+    if (!id || isNaN(leadId)) {
+      console.error('ID de lead invalide ou manquant:', id);
+      return NextResponse.json({ error: 'ID de dossier invalide' }, { status: 400 });
     }
 
     const db = await openDB();
-    
+    console.log('Base de données ouverte avec succès.');
+
     // Check if lead exists
-    const lead = await db.get('SELECT * FROM leads WHERE id = ?', [id]);
+    const lead = await db.get('SELECT * FROM leads WHERE id = ?', [leadId]);
     if (!lead) {
-      return NextResponse.json({ error: 'Lead introuvable' }, { status: 404 });
+      console.warn('Dossier non trouvé pour ID:', leadId);
+      return NextResponse.json({ error: 'Dossier introuvable' }, { status: 404 });
     }
+    console.log('Dossier trouvé:', lead.name);
 
     // Prepare update fields
     let updateFields = [];
@@ -106,15 +112,18 @@ export async function PUT(req) {
     }
 
     if (updateFields.length > 0) {
-      params.push(id);
+      params.push(leadId);
+      console.log('Exécution de l\'UPDATE:', { updateFields, params });
       await db.run(`UPDATE leads SET ${updateFields.join(', ')} WHERE id = ?`, params);
     }
 
+    console.log('--- API ADMIN LEADS PUT SUCCESS ---');
     return NextResponse.json({ success: true, messages });
     
   } catch (error) {
-    console.error('Erreur API Admin Update:', error);
-    return NextResponse.json({ error: 'Erreur Serveur Interne' }, { status: 500 });
+    console.error('--- API ADMIN LEADS PUT CRITICAL ERROR ---');
+    console.error(error);
+    return NextResponse.json({ error: 'Erreur Serveur Interne', details: error.message }, { status: 500 });
   }
 }
 
