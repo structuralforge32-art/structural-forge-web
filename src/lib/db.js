@@ -3,10 +3,14 @@ import path from 'path';
 let localDb = null;
 
 export async function openDB() {
-  const isCloud = !!process.env.POSTGRES_URL;
+  const isCloud = !!process.env.POSTGRES_URL || process.env.NODE_ENV === 'production';
 
   // ==== LOGIQUE CLOUD (Vercel) ====
   if (isCloud) {
+    if (!process.env.POSTGRES_URL) {
+      console.error("⚠️ ERREUR : La base de données Postgres n'est pas configurée dans Vercel.");
+      throw new Error("Base de données Postgres manquante. Vérifiez l'onglet Storage.");
+    }
     const { createPool } = require('@vercel/postgres');
     const pool = createPool();
 

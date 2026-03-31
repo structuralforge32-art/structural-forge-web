@@ -33,7 +33,9 @@ export async function POST(req) {
     return NextResponse.json({ success: true, id: result.lastID });
     
   } catch (error) {
-    console.error('Erreur API Contact:', error);
-    return NextResponse.json({ error: 'Erreur Serveur Interne' }, { status: 500 });
+    console.error('Erreur API Contact (Détails):', error);
+    // On renvoie un message plus explicite pour aider l'utilisateur à comprendre le problème de config
+    const errorMessage = error.message.includes('Postgres') ? 'Erreur de connexion à la base de données' : 'Erreur Serveur Interne';
+    return NextResponse.json({ error: errorMessage, details: error.message }, { status: 500 });
   }
 }

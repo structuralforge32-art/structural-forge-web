@@ -218,3 +218,53 @@ body::before {
 .text-center { text-align: center; }
 .mb-4 { margin-bottom: 1rem; }
 .mt-8 { margin-top: 2rem; }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 1rem 1.5rem;
+  }
+  
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+
+  /* Cache le bouton "Demander un devis" du header sur mobile pour gagner de la place si besoin, 
+     ou réduit sa taille */
+  .navbar .neon-button {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    padding: 0 1rem;
+  }
+
+  .section-container {
+    padding: 4rem 1rem;
+  }
+
+  .glass-panel {
+    padding: 1.5rem 1rem;
+  }
+
+  .services-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .navbar-brand span {
+    display: none; /* Cache "STRUCTURAL" sur les très petits écrans, garde "FORGE" */
+  }
+}
