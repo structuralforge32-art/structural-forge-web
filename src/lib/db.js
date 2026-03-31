@@ -26,6 +26,8 @@ export async function openDB() {
         status VARCHAR(255) DEFAULT 'Création du projet',
         token VARCHAR(255) UNIQUE,
         history TEXT DEFAULT '{}',
+        admin_notes TEXT DEFAULT '',
+        client_notes TEXT DEFAULT '',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
       
@@ -35,6 +37,17 @@ export async function openDB() {
         caption TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      -- Migrations Postgres pour les notes (au cas où la table existe déjà sans ces colonnes)
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='admin_notes') THEN
+          ALTER TABLE leads ADD COLUMN admin_notes TEXT DEFAULT '';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='client_notes') THEN
+          ALTER TABLE leads ADD COLUMN client_notes TEXT DEFAULT '';
+        END IF;
+      END $$;
     `);
 
     return {
