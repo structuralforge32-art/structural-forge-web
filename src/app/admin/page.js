@@ -36,6 +36,7 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [pendingFile, setPendingFile] = useState(null);
   const chatEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -112,7 +113,8 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
       text: newMessage,
       type: imageContent ? fileType : 'text',
       image: finalFile,
-      fileName: isAdmin && fileType === 'pdf' ? (fileInputRef.current?.files[0]?.name || 'document.pdf') : null
+      fileName: isAdmin && fileType === 'pdf' ? (fileInputRef.current?.files[0]?.name || 'document.pdf') : null,
+      timestamp: new Date().toISOString()
     };
 
     try {
@@ -128,6 +130,8 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
       const result = await res.json();
       if (res.ok) {
         setNewMessage('');
+        setPendingFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
         const newM = result.messages;
         setMessages(newM);
         if (onUpdate) onUpdate(newM);
@@ -142,8 +146,7 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
-    // Check if PDF or Image
+    setPendingFile(file.name);
     const reader = new FileReader();
     reader.onloadend = () => {
       sendMessage(reader.result);
@@ -289,12 +292,12 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
         />
         <button 
           onClick={() => sendMessage()}
-          disabled={isSending || (!newMessage.trim())}
+          disabled={isSending || (!newMessage.trim() && !pendingFile)}
           style={{ 
             background: 'var(--neon-blue)', color: '#000', border: 'none', borderRadius: '50%', 
             width: '42px', height: '42px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.2rem',
             flexShrink: 0,
-            opacity: isSending || !newMessage.trim() ? 0.5 : 1
+            opacity: isSending || (!newMessage.trim() && !pendingFile) ? 0.5 : 1
           }}
         >
           {isSending ? '...' : '➤'}
@@ -405,6 +408,21 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
             <option value="Terminé">Terminé</option>
           </select>
 
+          {lead.token && (
+            <a 
+              href={`/suivi/${lead.token}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{
+                padding: '6px', background: 'rgba(0,229,255,0.1)', color: 'var(--neon-blue)', 
+                border: '1px solid rgba(0,229,255,0.3)', borderRadius: '4px', cursor: 'pointer',
+                fontSize: '0.8rem', width: '100%', textAlign: 'center', display: 'block',
+                textDecoration: 'none'
+              }}
+            >
+              👁️ Vue Client
+            </a>
+          )}
           <button 
             onClick={() => deleteLead(lead.id)}
             style={{

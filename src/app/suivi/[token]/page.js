@@ -458,7 +458,7 @@ export default function SuiviProjet({ params }) {
       </div>
 
       {/* Section Devis */}
-      {data.quote_amount > 0 && (
+      {parseFloat(data.quote_amount) > 0 && (
         <div className="glass-panel mb-4" style={{ border: '1px solid var(--neon-blue)', background: 'rgba(0,229,255,0.05)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
             <div>
