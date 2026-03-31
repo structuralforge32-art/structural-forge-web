@@ -1,5 +1,3 @@
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
 import path from 'path';
 
 let localDb = null;
@@ -7,12 +5,12 @@ let localDb = null;
 export async function openDB() {
   const isCloud = !!process.env.POSTGRES_URL;
 
-  // ==== LOGIQUE CLOUD ====
+  // ==== LOGIQUE CLOUD (Vercel) ====
   if (isCloud) {
     const { createPool } = require('@vercel/postgres');
     const pool = createPool();
 
-    // Création des tables Postgres à l'initialisation si elles n'existent pas
+    // ... (le reste de la logique Postgres reste identique)
     await pool.query(`
       CREATE TABLE IF NOT EXISTS leads (
         id SERIAL PRIMARY KEY,
@@ -35,7 +33,6 @@ export async function openDB() {
       );
     `);
 
-    // Abstraction pour s'aligner sur la syntaxe locale SQLite
     return {
       run: async (query, params = []) => {
         let pgQuery = query;
@@ -61,13 +58,17 @@ export async function openDB() {
     };
   }
 
-  // ==== LOGIQUE LOCALE SUR MACHINE (SQLite) ====
+  // ==== LOGIQUE LOCALE (SQLite) ====
+  // On importe dynamiquement pour ne pas faire planter Vercel
+  const sqlite3 = require('sqlite3');
+  const { open } = require('sqlite');
+
   if (!localDb) {
     localDb = await open({
       filename: path.join(process.cwd(), 'leads.db'),
       driver: sqlite3.Database
     });
-    // Create leads table if it doesn't exist
+    
     await localDb.exec(`
       CREATE TABLE IF NOT EXISTS leads (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -80,21 +81,18 @@ export async function openDB() {
         token TEXT UNIQUE,
         history TEXT DEFAULT '{}',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    // Migrations silencieuses
-    try { await localDb.exec("ALTER TABLE leads ADD COLUMN token TEXT"); } catch (e) {}
-    try { await localDb.exec("ALTER TABLE leads ADD COLUMN history TEXT DEFAULT '{}'"); } catch (e) {}
-    
-    await localDb.exec(`
+      );
+      
       CREATE TABLE IF NOT EXISTS gallery (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         url TEXT NOT NULL,
         caption TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
+      );
     `);
+
+    try { await localDb.exec("ALTER TABLE leads ADD COLUMN token TEXT"); } catch (e) {}
+    try { await localDb.exec("ALTER TABLE leads ADD COLUMN history TEXT DEFAULT '{}'"); } catch (e) {}
   }
   return localDb;
 }
