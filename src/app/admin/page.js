@@ -322,7 +322,7 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
           id: lead.id, 
           admin_notes: adminNotes,
           internal_notes: internalNotes,
-          quote_amount: quoteAmount
+          quote_amount: parseFloat(quoteAmount) || 0
         })
       });
       if (res.ok) {
@@ -426,18 +426,16 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--neon-blue)', marginBottom: '8px', fontWeight: 'bold' }}>💰 Montant du Devis (TTC)</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <input 
-                      type="number" 
-                      value={quoteAmount}
-                      onChange={(e) => setQuoteAmount(parseFloat(e.target.value) || 0)}
-                      className="form-input"
-                      style={{ flex: 1, fontSize: '0.9rem', background: 'rgba(0,0,0,0.4)' }}
-                      placeholder="Ex: 1500"
-                    />
-                    <span style={{color: '#fff'}}>€ TTC</span>
-                  </div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--neon-blue)', marginBottom: '8px', fontWeight: 'bold' }}>💰 Montant du Devis TTC (€)</label>
+                  <input 
+                    type="text"
+                    inputMode="numeric"
+                    value={quoteAmount || ''}
+                    onChange={(e) => setQuoteAmount(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '1rem', background: 'rgba(0,0,0,0.4)', WebkitAppearance: 'none', MozAppearance: 'textfield' }}
+                    placeholder="Saisir le montant (ex: 1500)"
+                  />
                 </div>
 
                 <div>
