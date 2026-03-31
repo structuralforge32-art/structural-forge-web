@@ -12,7 +12,7 @@ export async function GET(req, { params }) {
     const db = await openDB();
     
     // Rechercher le lead en utilisant le token secret
-    const lead = await db.get('SELECT id, name, type, message, status, history, admin_notes, client_notes, messages, created_at FROM leads WHERE token = ?', [token]);
+    const lead = await db.get('SELECT id, token, name, type, message, status, history, admin_notes, client_notes, messages, created_at FROM leads WHERE token = ?', [token]);
     
     if (!lead) {
       return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 });

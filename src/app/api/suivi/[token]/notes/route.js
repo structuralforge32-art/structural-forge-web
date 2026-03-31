@@ -1,3 +1,5 @@
+import { NextResponse } from 'next/server';
+import { openDB } from '@/lib/db';
 import { sendNewMessageNotification } from '@/lib/mail';
 
 export async function POST(req, { params }) {
