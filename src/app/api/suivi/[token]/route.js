@@ -12,7 +12,7 @@ export async function GET(req, { params }) {
     const db = await openDB();
     
     // Rechercher le lead en sélectionnant uniquement les colonnes publiques
-    const lead = await db.get('SELECT id, token, name, type, message, status, history, admin_notes, client_notes, messages, quote_amount, quote_status, quote_validated_at, quote_signature, created_at FROM leads WHERE token = ?', [token]);
+    const lead = await db.get('SELECT id, token, name, type, message, status, history, admin_notes, client_notes, messages, quote_amount, quote_amount_validated, quote_status, quote_validated_at, quote_signature, created_at FROM leads WHERE token = ?', [token]);
     
     if (!lead) {
       return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 });

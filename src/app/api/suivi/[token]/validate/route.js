@@ -11,7 +11,7 @@ export async function POST(req, { params }) {
     }
 
     const db = await openDB();
-    const lead = await db.get('SELECT id, history, status FROM leads WHERE token = ?', [token]);
+    const lead = await db.get('SELECT id, history, status, quote_amount FROM leads WHERE token = ?', [token]);
     
     if (!lead) {
       return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 });
@@ -35,10 +35,11 @@ export async function POST(req, { params }) {
         quote_validated_at = ?, 
         quote_ip = ?, 
         quote_signature = ?, 
+        quote_amount_validated = ?,
         status = ?,
         history = ?
       WHERE id = ?`,
-      [now, ip, signature, statusText, JSON.stringify(history), lead.id]
+      [now, ip, signature, lead.quote_amount, statusText, JSON.stringify(history), lead.id]
     );
 
     return NextResponse.json({ success: true, validated_at: now });

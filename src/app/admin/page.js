@@ -408,7 +408,7 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
             </span>
             {lead.quote_status === 'validated' && (
               <div style={{fontSize: '0.65rem', color: 'rgba(0,255,100,0.7)', marginTop: '4px'}}>
-                Signé: {lead.quote_amount}€ TTC le {new Date(lead.quote_validated_at).toLocaleDateString('fr-FR')} (IP: {lead.quote_ip})
+                Signé: {lead.quote_amount_validated}€ TTC le {new Date(lead.quote_validated_at).toLocaleDateString('fr-FR')} (IP: {lead.quote_ip})
               </div>
             )}
           </div>

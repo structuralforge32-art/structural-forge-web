@@ -32,6 +32,7 @@ export async function openDB() {
         unread_admin INTEGER DEFAULT 0,
         internal_notes TEXT DEFAULT '',
         quote_amount REAL DEFAULT 0,
+        quote_amount_validated REAL DEFAULT 0,
         quote_status TEXT DEFAULT 'pending',
         quote_validated_at TEXT,
         quote_ip TEXT,
@@ -76,8 +77,8 @@ export async function openDB() {
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='messages') THEN
           ALTER TABLE leads ADD COLUMN messages TEXT DEFAULT '[]';
         END IF;
-        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='unread_admin') THEN
-          ALTER TABLE leads ADD COLUMN unread_admin INTEGER DEFAULT 0;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='quote_amount_validated') THEN
+          ALTER TABLE leads ADD COLUMN quote_amount_validated REAL DEFAULT 0;
         END IF;
       END $$;
     `);
@@ -132,6 +133,7 @@ export async function openDB() {
         admin_notes TEXT DEFAULT '',
         internal_notes TEXT DEFAULT '',
         quote_amount REAL DEFAULT 0,
+        quote_amount_validated REAL DEFAULT 0,
         quote_status TEXT DEFAULT 'pending',
         quote_validated_at TEXT,
         quote_ip TEXT,
@@ -162,6 +164,7 @@ export async function openDB() {
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN client_notes TEXT DEFAULT ''"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN messages TEXT DEFAULT '[]'"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN unread_admin INTEGER DEFAULT 0"); } catch (e) {}
+    try { await localDb.exec("ALTER TABLE leads ADD COLUMN quote_amount_validated REAL DEFAULT 0"); } catch (e) {}
   }
   return localDb;
 }
