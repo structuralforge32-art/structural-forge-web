@@ -162,19 +162,19 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
     } catch (e) { console.error(e); }
   };
 
-  const chatHeight = isExpanded ? 'calc(100vh - 200px)' : '550px';
+  const chatHeight = isExpanded ? '92vh' : '550px';
 
   return (
     <div className="chat-container" style={{ 
       display: 'flex', flexDirection: 'column', height: chatHeight, 
-      background: 'rgba(0,0,0,0.5)', borderRadius: '12px', 
+      background: 'rgba(0,0,0,0.6)', borderRadius: '12px', 
       border: '1px solid var(--glass-border)', overflow: 'hidden', 
-      transition: 'height 0.4s ease',
-      boxShadow: isExpanded ? '0 0 50px rgba(0,0,0,0.5)' : 'none',
+      transition: 'all 0.4s ease',
+      boxShadow: isExpanded ? '0 0 100px rgba(0,0,0,0.8)' : 'none',
       position: isExpanded ? 'fixed' : 'relative',
-      top: isExpanded ? '100px' : 'auto',
-      left: isExpanded ? '5%' : 'auto',
-      width: isExpanded ? '90%' : '100%',
+      top: isExpanded ? '4vh' : 'auto',
+      left: isExpanded ? '4%' : 'auto',
+      width: isExpanded ? '92%' : '100%',
       zIndex: isExpanded ? 1000 : 1
     }}>
       <div className="chat-header" style={{ padding: '12px 15px', background: 'rgba(255,255,255,0.08)', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
