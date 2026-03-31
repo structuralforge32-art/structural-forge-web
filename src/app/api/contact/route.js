@@ -25,9 +25,12 @@ export async function POST(req) {
 
     try {
       await sendAdminNotification({ name, email, phone, type, message, id: result.lastID });
-    } catch (mailError) {
-      console.error("Erreur lors de l'envoi de l'email (vérifiez les identifiants SMTP):", mailError);
-      // We log but do not throw, so the lead is successfully registered even if email is misconfigured
+      const { sendAdminSMS } = require('@/lib/sms');
+      await sendAdminSMS({ name, type });
+      const { sendClientConfirmation } = require('@/lib/mail');
+      await sendClientConfirmation({ name, email, type, token: projectToken });
+    } catch (err) {
+      console.error("Erreur notifications (Email/SMS) :", err);
     }
 
     return NextResponse.json({ success: true, id: result.lastID });

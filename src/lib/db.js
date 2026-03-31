@@ -30,6 +30,12 @@ export async function openDB() {
         client_notes TEXT DEFAULT '',
         messages TEXT DEFAULT '[]',
         unread_admin INTEGER DEFAULT 0,
+        internal_notes TEXT DEFAULT '',
+        quote_amount REAL DEFAULT 0,
+        quote_status TEXT DEFAULT 'pending',
+        quote_validated_at TEXT,
+        quote_ip TEXT,
+        quote_signature TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
       
@@ -45,6 +51,24 @@ export async function openDB() {
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='admin_notes') THEN
           ALTER TABLE leads ADD COLUMN admin_notes TEXT DEFAULT '';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='internal_notes') THEN
+          ALTER TABLE leads ADD COLUMN internal_notes TEXT DEFAULT '';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='quote_amount') THEN
+          ALTER TABLE leads ADD COLUMN quote_amount REAL DEFAULT 0;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='quote_status') THEN
+          ALTER TABLE leads ADD COLUMN quote_status TEXT DEFAULT 'pending';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='quote_validated_at') THEN
+          ALTER TABLE leads ADD COLUMN quote_validated_at TEXT;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='quote_ip') THEN
+          ALTER TABLE leads ADD COLUMN quote_ip TEXT;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='quote_signature') THEN
+          ALTER TABLE leads ADD COLUMN quote_signature TEXT;
         END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='client_notes') THEN
           ALTER TABLE leads ADD COLUMN client_notes TEXT DEFAULT '';
@@ -106,7 +130,15 @@ export async function openDB() {
         token TEXT UNIQUE,
         history TEXT DEFAULT '{}',
         admin_notes TEXT DEFAULT '',
+        internal_notes TEXT DEFAULT '',
+        quote_amount REAL DEFAULT 0,
+        quote_status TEXT DEFAULT 'pending',
+        quote_validated_at TEXT,
+        quote_ip TEXT,
+        quote_signature TEXT,
         client_notes TEXT DEFAULT '',
+        messages TEXT DEFAULT '[]',
+        unread_admin INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
       
@@ -121,6 +153,12 @@ export async function openDB() {
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN token TEXT"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN history TEXT DEFAULT '{}'"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN admin_notes TEXT DEFAULT ''"); } catch (e) {}
+    try { await localDb.exec("ALTER TABLE leads ADD COLUMN internal_notes TEXT DEFAULT ''"); } catch (e) {}
+    try { await localDb.exec("ALTER TABLE leads ADD COLUMN quote_amount REAL DEFAULT 0"); } catch (e) {}
+    try { await localDb.exec("ALTER TABLE leads ADD COLUMN quote_status TEXT DEFAULT 'pending'"); } catch (e) {}
+    try { await localDb.exec("ALTER TABLE leads ADD COLUMN quote_validated_at TEXT"); } catch (e) {}
+    try { await localDb.exec("ALTER TABLE leads ADD COLUMN quote_ip TEXT"); } catch (e) {}
+    try { await localDb.exec("ALTER TABLE leads ADD COLUMN quote_signature TEXT"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN client_notes TEXT DEFAULT ''"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN messages TEXT DEFAULT '[]'"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN unread_admin INTEGER DEFAULT 0"); } catch (e) {}

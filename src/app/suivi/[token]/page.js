@@ -1,50 +1,88 @@
-'use client';
-import React, { useState, useEffect, useRef } from 'react';
-import { use } from 'react';
+// Composant Signature Pad (Canvas)
+function SignaturePad({ onSave, onClear }) {
+  const canvasRef = useRef(null);
+  const [isDrawing, setIsDrawing] = useState(false);
 
-const STEPS = [
-  "Création du projet",
-  "Validation de faisabilité",
-  "Devis",
-  "Modélisation 3D",
-  "Prototypage",
-  "Impression finale",
-  "Facturation",
-  "Terminé"
-];
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.strokeStyle = '#00e5ff';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+  }, []);
 
-// Helper pour compresser les images avant envoi (Base64 optimisé)
-const compressImage = (base64Str, maxWidth = 1000, maxHeight = 1000) => {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.src = base64Str;
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      let width = img.width;
-      let height = img.height;
-
-      if (width > height) {
-        if (width > maxWidth) {
-          height *= maxWidth / width;
-          width = maxWidth;
-        }
-      } else {
-        if (height > maxHeight) {
-          width *= maxHeight / height;
-          height = maxHeight;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', 0.7)); // Qualité 70% pour un poids plume
+  const getPos = (e) => {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
     };
-  });
-};
+  };
 
-// Composant Chat Partagé
+  const startDrawing = (e) => {
+    setIsDrawing(true);
+    const pos = getPos(e);
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    e.preventDefault();
+  };
+
+  const draw = (e) => {
+    if (!isDrawing) return;
+    const pos = getPos(e);
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    e.preventDefault();
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  const clear = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (onClear) onClear();
+  };
+
+  const save = () => {
+    const canvas = canvasRef.current;
+    // Vérifier si le canvas est vide (optionnel)
+    onSave(canvas.toDataURL('image/png'));
+  };
+
+  return (
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ background: '#fff', borderRadius: '8px', overflow: 'hidden', border: '2px solid var(--neon-blue)', cursor: 'crosshair', touchAction: 'none' }}>
+        <canvas 
+          ref={canvasRef}
+          width={400}
+          height={150}
+          onMouseDown={startDrawing}
+          onMouseMove={draw}
+          onMouseUp={stopDrawing}
+          onMouseOut={stopDrawing}
+          onTouchStart={startDrawing}
+          onTouchMove={draw}
+          onTouchEnd={stopDrawing}
+          style={{ width: '100%', display: 'block' }}
+        />
+      </div>
+      <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+        <button onClick={clear} style={{ flex: 1, padding: '8px', background: 'rgba(255,50,50,0.1)', color: '#ff4444', border: '1px solid #ff4444', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>Effacer</button>
+        <button onClick={save} style={{ flex: 2, padding: '8px', background: 'var(--neon-blue)', color: '#000', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem' }}>Pré-valider Signature</button>
+      </div>
+    </div>
+  );
+}
+
+// Composant Chat Partagé (Version Client)
 function LeadChat({ lead, isAdmin, onUpdate }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -103,16 +141,18 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
     if (!newMessage.trim() && !imageContent) return;
     setIsSending(true);
 
-    let finalImage = imageContent;
-    if (imageContent) {
-      finalImage = await compressImage(imageContent);
+    let finalFile = imageContent;
+    let fileType = imageContent && imageContent.startsWith('data:application/pdf') ? 'pdf' : 'image';
+    
+    if (imageContent && fileType === 'image') {
+      finalFile = await compressImage(imageContent);
     }
 
     const msgObj = {
       sender: isAdmin ? 'admin' : 'client',
       text: newMessage,
-      type: finalImage ? 'image' : 'text',
-      image: finalImage,
+      type: imageContent ? fileType : 'text',
+      image: finalFile,
       timestamp: new Date().toISOString()
     };
 
@@ -204,6 +244,11 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
               }}>
                 {msg.type === 'image' ? (
                   <img src={msg.image} alt="Upload" style={{ maxWidth: '100%', borderRadius: '10px', cursor: 'pointer', display: 'block' }} onClick={() => window.open(msg.image)} />
+                ) : msg.type === 'pdf' ? (
+                  <div onClick={() => window.open(msg.image)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{fontSize: '1.5rem'}}>📄</span>
+                    <div style={{fontSize: '0.8rem', textDecoration: 'underline'}}>Ouvrir le Devis/Facture PDF</div>
+                  </div>
                 ) : (
                   msg.text
                 )}
@@ -228,7 +273,7 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
       }}>
         <input 
           type="file" 
-          accept="image/*" 
+          accept="image/*,application/pdf" 
           ref={fileInputRef} 
           style={{ display: 'none' }} 
           onChange={handleFileUpload}
@@ -241,9 +286,9 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
             alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem',
             flexShrink: 0
           }}
-          title="Envoyer une photo"
+          title="Envoyer une photo ou un document"
         >
-          📸
+          📎
         </button>
         <input 
           type="text" 
@@ -287,26 +332,56 @@ export default function SuiviProjet({ params }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [signatureData, setSignatureData] = useState(null);
+  const [isValidating, setIsValidating] = useState(false);
+
+  const fetchProject = async () => {
+    try {
+      const res = await fetch(`/api/suivi/${token}`);
+      const result = await res.json();
+      
+      if (res.ok) {
+        setData(result.lead);
+      } else {
+        setError(result.error);
+      }
+    } catch (err) {
+      setError('Erreur de connexion.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        const res = await fetch(`/api/suivi/${token}`);
-        const result = await res.json();
-        
-        if (res.ok) {
-          setData(result.lead);
-        } else {
-          setError(result.error);
-        }
-      } catch (err) {
-        setError('Erreur de connexion.');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProject();
   }, [token]);
+
+  const handleValidateQuote = async () => {
+    if (!signatureData) {
+      alert("Veuillez d'abord signer le devis dans la zone prévue.");
+      return;
+    }
+    if (!window.confirm("Confirmez-vous la validation de ce devis ? (Valeur légale de 'Bon pour Accord')")) return;
+
+    setIsValidating(true);
+    try {
+      const res = await fetch(`/api/suivi/${token}/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ signature: signatureData })
+      });
+      if (res.ok) {
+        alert("✅ Devis validé avec succès !");
+        fetchProject();
+      } else {
+        alert("Erreur lors de la validation.");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsValidating(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -344,6 +419,46 @@ export default function SuiviProjet({ params }) {
         <p style={{color: 'var(--text-secondary)'}}>Client : {data.name}</p>
         <p style={{color: 'var(--text-secondary)', fontSize: '0.9rem'}}>Débuté le : {new Date(data.created_at).toLocaleDateString('fr-FR')}</p>
       </div>
+
+      {/* Section Devis */}
+      {data.quote_amount > 0 && (
+        <div className="glass-panel mb-4" style={{ border: '1px solid var(--neon-blue)', background: 'rgba(0,229,255,0.05)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+            <div>
+              <h2 className="neon-text" style={{ fontSize: '1.4rem', margin: 0 }}>💰 Devis du Projet</h2>
+              <p style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '10px 0', color: '#fff' }}>{data.quote_amount} € TTC</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                {data.quote_status === 'validated' 
+                  ? `✅ Validé le ${new Date(data.quote_validated_at).toLocaleString('fr-FR')}` 
+                  : "⌛ En attente de votre accord pour lancer la production."}
+              </p>
+            </div>
+            
+            {data.quote_status !== 'validated' ? (
+              <div style={{ maxWidth: '420px', width: '100%' }}>
+                <p style={{ fontSize: '0.85rem', marginBottom: '10px', color: 'var(--neon-blue)' }}>⬇️ Signez ci-dessous pour lancer le projet :</p>
+                <SignaturePad onSave={setSignatureData} onClear={() => setSignatureData(null)} />
+                <button 
+                  onClick={handleValidateQuote}
+                  disabled={!signatureData || isValidating}
+                  className="neon-button"
+                  style={{ width: '100%', marginTop: '15px', padding: '12px', fontSize: '1rem', background: '#00ff66', color: '#000' }}
+                >
+                  {isValidating ? 'Validation...' : '🤝 BON POUR ACCORD (Valider)'}
+                </button>
+                <p style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginTop: '8px', textAlign: 'center' }}>
+                  En cliquant, vous acceptez le devis. Votre signature, date, heure et IP seront enregistrées comme preuve légale.
+                </p>
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', background: 'rgba(0,255,100,0.1)', padding: '15px', borderRadius: '8px', border: '1px solid #00ff66' }}>
+                <p style={{ color: '#00ff66', fontWeight: 'bold', fontSize: '1.1rem', margin: 0 }}>✓ Projet Validé</p>
+                <img src={data.quote_signature} alt="Signature" style={{ maxHeight: '60px', marginTop: '10px', filter: 'invert(1)' }} />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="glass-panel">
         <h2 className="mb-4" style={{fontSize: '1.5rem', textAlign: 'center'}}>Suivi d'Avancement</h2>
@@ -442,13 +557,13 @@ export default function SuiviProjet({ params }) {
         />
         
         <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid var(--glass-border)' }}>
-          <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--neon-blue)', marginBottom: '10px', fontWeight: 'bold' }}>👤 Notes Finales de l'Expert</label>
+          <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--neon-blue)', marginBottom: '10px', fontWeight: 'bold' }}>👤 Notes de l'Expert</label>
           <div style={{ 
             padding: '1.2rem', background: 'rgba(0,229,255,0.05)', borderRadius: '8px', 
             border: '1px solid var(--glass-border)', color: '#fff',
             fontSize: '0.9rem', whiteSpace: 'pre-wrap', lineHeight: '1.5'
           }}>
-            {data.admin_notes || "L'expert centralisera ici vos décisions finales."}
+            {data.admin_notes || "Aucune note partagée pour le moment."}
           </div>
         </div>
       </div>

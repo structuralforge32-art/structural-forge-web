@@ -64,6 +64,14 @@ export async function PUT(req) {
       updateFields.push('admin_notes = ?');
       params.push(admin_notes);
     }
+    if (internal_notes !== undefined) {
+      updateFields.push('internal_notes = ?');
+      params.push(internal_notes);
+    }
+    if (quote_amount !== undefined) {
+      updateFields.push('quote_amount = ?');
+      params.push(parseFloat(quote_amount) || 0);
+    }
     if (client_notes !== undefined) {
       updateFields.push('client_notes = ?');
       params.push(client_notes);

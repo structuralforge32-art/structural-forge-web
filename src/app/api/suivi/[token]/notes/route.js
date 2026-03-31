@@ -14,8 +14,8 @@ export async function POST(req, { params }) {
 
     const db = await openDB();
     
-    // Rechercher le lead via le token
-    const lead = await db.get('SELECT * FROM leads WHERE token = ?', [token]);
+    // Rechercher le lead via le token (colonnes publiques uniquement)
+    const lead = await db.get('SELECT id, token, name, email, client_notes, messages FROM leads WHERE token = ?', [token]);
     if (!lead) {
       return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 });
     }

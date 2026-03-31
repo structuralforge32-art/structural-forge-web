@@ -90,3 +90,13 @@ Projet: ${lead.type}
   
   return transporter.sendMail(mailOptions);
 }
+
+export async function sendClientConfirmation(lead) {
+  const mailOptions = {
+    from: 'structural.forge32@gmail.com',
+    to: lead.email,
+    subject: `Confirmation de votre demande - Structural Forge`,
+    text: `Bonjour ${lead.name}, nous avons bien reçu votre demande concernant "${lead.type}". Suivez l'avancement ici : ${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/suivi/${lead.token}`
+  };
+  return transporter.sendMail(mailOptions);
+}

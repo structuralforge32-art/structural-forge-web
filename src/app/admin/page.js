@@ -100,16 +100,19 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
     if (!newMessage.trim() && !imageContent) return;
     setIsSending(true);
 
-    let finalImage = imageContent;
-    if (imageContent) {
-      finalImage = await compressImage(imageContent);
+    let finalFile = imageContent;
+    let fileType = imageContent && imageContent.startsWith('data:application/pdf') ? 'pdf' : 'image';
+    
+    if (imageContent && fileType === 'image') {
+      finalFile = await compressImage(imageContent);
     }
 
     const msgObj = {
       sender: isAdmin ? 'admin' : 'client',
       text: newMessage,
-      type: finalImage ? 'image' : 'text',
-      image: finalImage,
+      type: imageContent ? fileType : 'text',
+      image: finalFile,
+      fileName: isAdmin && fileType === 'pdf' ? (fileInputRef.current?.files[0]?.name || 'document.pdf') : null
     };
 
     try {
@@ -139,6 +142,8 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    
+    // Check if PDF or Image
     const reader = new FileReader();
     reader.onloadend = () => {
       sendMessage(reader.result);
@@ -219,6 +224,11 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
               }}>
                 {msg.type === 'image' ? (
                   <img src={msg.image} alt="Upload" style={{ maxWidth: '100%', borderRadius: '10px', cursor: 'pointer', display: 'block' }} onClick={() => window.open(msg.image)} />
+                ) : msg.type === 'pdf' ? (
+                  <div onClick={() => window.open(msg.image)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{fontSize: '1.5rem'}}>📄</span>
+                    <div style={{fontSize: '0.8rem', textDecoration: 'underline'}}>Voir le document PDF</div>
+                  </div>
                 ) : (
                   msg.text
                 )}
@@ -242,7 +252,7 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
       }}>
         <input 
           type="file" 
-          accept="image/*" 
+          accept="image/*,application/pdf" 
           ref={fileInputRef} 
           style={{ display: 'none' }} 
           onChange={handleFileUpload}
@@ -255,6 +265,7 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
             alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem',
             flexShrink: 0 
           }}
+          title="Ajouter une photo ou un Devis PDF"
         >
           📎
         </button>
@@ -295,20 +306,27 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
 
 function LeadRow({ lead, updateStatus, deleteLead }) {
   const [adminNotes, setAdminNotes] = useState(lead.admin_notes || '');
+  const [internalNotes, setInternalNotes] = useState(lead.internal_notes || '');
+  const [quoteAmount, setQuoteAmount] = useState(lead.quote_amount || 0);
   const [isSaving, setIsSaving] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState(lead.messages || '[]');
 
-  const saveNotes = async () => {
+  const saveDetails = async () => {
     setIsSaving(true);
     try {
       const res = await fetch('/api/admin/leads', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: lead.id, admin_notes: adminNotes })
+        body: JSON.stringify({ 
+          id: lead.id, 
+          admin_notes: adminNotes,
+          internal_notes: internalNotes,
+          quote_amount: quoteAmount
+        })
       });
       if (res.ok) {
-        alert('Notes sauvegardées !');
+        alert('Informations sauvegardées !');
       }
     } catch (err) {
       console.error(err);
@@ -337,7 +355,7 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
               background: 'none', border: 'none', cursor: 'pointer', padding: 0 
             }}
           >
-            {isExpanded ? '▲ Cacher Discussion' : '▼ Voir Discussion'}
+            {isExpanded ? '▲ Cacher Gestion' : '▼ Gérer Projet'}
           </button>
         </td>
         <td style={{ padding: '1rem', verticalAlign: 'top', minWidth: '150px' }}>
@@ -357,16 +375,18 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
                       : lead.status === 'Terminé' ? 'rgba(0,255,100,0.2)'
                       : 'rgba(255, 200, 0, 0.2)',
             color: lead.status === 'Création du projet' ? 'var(--neon-blue)' 
-                 : lead.status === 'Terminé' ? '#00ff66'
-                 : '#ffc800'
+                  : lead.status === 'Terminé' ? '#00ff66'
+                  : '#ffc800'
           }}>
             {lead.status}
           </span>
-          {lead.token && (
-            <div style={{marginTop: '10px'}}>
-              <a href={`/suivi/${lead.token}`} target="_blank" rel="noopener noreferrer" style={{color: 'var(--neon-blue)', fontSize: '0.8rem', textDecoration: 'none'}}>📎 Portail Client</a>
-            </div>
-          )}
+          <div style={{marginTop: '10px', fontSize: '0.8rem'}}>
+            <span style={{color: 'var(--text-secondary)'}}>Devis : </span>
+            <span style={{fontWeight: 'bold', color: lead.quote_status === 'validated' ? '#00ff66' : '#fff'}}>
+              {lead.quote_amount > 0 ? `${lead.quote_amount}€ TTC` : 'Non défini'}
+              {lead.quote_status === 'validated' ? ' (Validé ✅)' : ''}
+            </span>
+          </div>
         </td>
         <td style={{ padding: '1rem', verticalAlign: 'top', display: 'flex', gap: '8px', flexDirection: 'column' }}>
           <select 
@@ -404,22 +424,51 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
               <div>
                 <LeadChat lead={{...lead, messages}} isAdmin={true} onUpdate={(newM) => setMessages(JSON.stringify(newM))} />
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--neon-blue)', marginBottom: '8px', fontWeight: 'bold' }}>📝 Notes Internes (Admin uniquement)</label>
-                <textarea 
-                  value={adminNotes}
-                  onChange={(e) => setAdminNotes(e.target.value)}
-                  className="form-input"
-                  style={{ minHeight: '344px', fontSize: '0.85rem', background: 'rgba(0,0,0,0.4)' }}
-                  placeholder="Notes techniques, mémos privés..."
-                />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--neon-blue)', marginBottom: '8px', fontWeight: 'bold' }}>💰 Montant du Devis (TTC)</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <input 
+                      type="number" 
+                      value={quoteAmount}
+                      onChange={(e) => setQuoteAmount(parseFloat(e.target.value) || 0)}
+                      className="form-input"
+                      style={{ flex: 1, fontSize: '0.9rem', background: 'rgba(0,0,0,0.4)' }}
+                      placeholder="Ex: 1500"
+                    />
+                    <span style={{color: '#fff'}}>€ TTC</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#ff4444', marginBottom: '8px', fontWeight: 'bold' }}>🔒 Notes Internes (Privé Technicien)</label>
+                  <textarea 
+                    value={internalNotes}
+                    onChange={(e) => setInternalNotes(e.target.value)}
+                    className="form-input"
+                    style={{ minHeight: '120px', fontSize: '0.85rem', background: 'rgba(255, 50, 50, 0.05)', border: '1px solid rgba(255, 50, 50, 0.2)' }}
+                    placeholder="Mémos confidentiels, références techniques..."
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--neon-blue)', marginBottom: '8px', fontWeight: 'bold' }}>📢 Notes Partagées avec le Client</label>
+                  <textarea 
+                    value={adminNotes}
+                    onChange={(e) => setAdminNotes(e.target.value)}
+                    className="form-input"
+                    style={{ minHeight: '120px', fontSize: '0.85rem', background: 'rgba(0,229,255,0.05)', border: '1px solid rgba(0,229,255,0.2)' }}
+                    placeholder="Informations visibles par le client sur son portail..."
+                  />
+                </div>
+
                 <button 
-                  onClick={saveNotes}
+                  onClick={saveDetails}
                   disabled={isSaving}
                   className="neon-button"
-                  style={{ marginTop: '10px', padding: '6px 12px', fontSize: '0.75rem', width: '100%' }}
+                  style={{ marginTop: '10px', padding: '10px', fontSize: '0.85rem', width: '100%' }}
                 >
-                  {isSaving ? 'Enregistrement...' : 'Enregistrer Notes Internes'}
+                  {isSaving ? 'Enregistrement...' : '💾 Sauvegarder tout le dossier'}
                 </button>
               </div>
             </div>
