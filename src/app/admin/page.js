@@ -406,6 +406,11 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
               {lead.quote_amount > 0 ? `${lead.quote_amount}€ TTC` : 'Non défini'}
               {lead.quote_status === 'validated' ? ' (Validé ✅)' : ''}
             </span>
+            {lead.quote_status === 'validated' && (
+              <div style={{fontSize: '0.65rem', color: 'rgba(0,255,100,0.7)', marginTop: '4px'}}>
+                IP: {lead.quote_ip} le {new Date(lead.quote_validated_at).toLocaleDateString('fr-FR')}
+              </div>
+            )}
           </div>
         </td>
         <td style={{ padding: '1rem', verticalAlign: 'top', display: 'flex', gap: '8px', flexDirection: 'column' }}>

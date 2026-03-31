@@ -466,7 +466,7 @@ export default function SuiviProjet({ params }) {
       </div>
 
       {/* Section Devis */}
-      {data.quote_amount > 0 && (
+      {data.quote_amount > 0 && (data.status === 'Devis' || data.quote_status === 'validated') && (
         <div className="glass-panel mb-4" style={{ border: '1px solid var(--neon-blue)', background: 'rgba(0,229,255,0.05)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
             <div>
@@ -474,7 +474,7 @@ export default function SuiviProjet({ params }) {
               <p style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '10px 0', color: '#fff' }}>{data.quote_amount} € TTC</p>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                 {data.quote_status === 'validated' 
-                  ? `✅ Validé le ${new Date(data.quote_validated_at).toLocaleString('fr-FR')}` 
+                  ? `✓ Accord donné par le client.` 
                   : "⌛ En attente de votre accord pour lancer la production."}
               </p>
             </div>
@@ -496,9 +496,13 @@ export default function SuiviProjet({ params }) {
                 </p>
               </div>
             ) : (
-              <div style={{ textAlign: 'center', background: 'rgba(0,255,100,0.1)', padding: '15px', borderRadius: '8px', border: '1px solid #00ff66' }}>
-                <p style={{ color: '#00ff66', fontWeight: 'bold', fontSize: '1.1rem', margin: 0 }}>✓ Projet Validé</p>
+              <div style={{ textAlign: 'center', background: 'rgba(0,255,100,0.1)', padding: '15px', borderRadius: '8px', border: '1px solid #00ff66', minWidth: '250px' }}>
+                <p style={{ color: '#00ff66', fontWeight: 'bold', fontSize: '1.1rem', margin: 0 }}>✓ Devis Validé</p>
                 <img src={data.quote_signature} alt="Signature" style={{ maxHeight: '60px', marginTop: '10px', filter: 'invert(1)' }} />
+                <div style={{ marginTop: '10px', fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', borderTop: '1px solid rgba(0,255,100,0.2)', paddingTop: '8px' }}>
+                  📅 Signé le : {new Date(data.quote_validated_at).toLocaleString('fr-FR')}<br/>
+                  🌐 IP : {data.quote_ip}
+                </div>
               </div>
             )}
           </div>
