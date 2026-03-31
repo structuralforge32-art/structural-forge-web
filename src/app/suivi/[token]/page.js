@@ -502,6 +502,10 @@ export default function SuiviProjet({ params }) {
               <div style={{ maxWidth: '420px', width: '100%' }}>
                 <p style={{ fontSize: '0.85rem', marginBottom: '10px', color: 'var(--neon-blue)' }}>⬇️ Signez ci-dessous pour lancer le projet :</p>
                 <SignaturePad onSave={setSignatureData} onClear={() => setSignatureData(null)} />
+                <p style={{ fontSize: '0.75rem', color: 'var(--neon-blue)', marginTop: '8px', fontStyle: 'italic', textAlign: 'center' }}>
+                  💡 Étape 1 : Signez au doigt ou à la souris. <br/>
+                  💡 Étape 2 : Cliquez sur <strong>"Pré-valider"</strong> pour figer votre signature.
+                </p>
                 <button 
                   onClick={handleValidateQuote}
                   disabled={!signatureData || isValidating}
