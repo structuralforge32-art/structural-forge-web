@@ -49,8 +49,35 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const chatEndRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  const fetchMessages = async () => {
+    try {
+      const url = isAdmin ? `/api/admin/leads` : `/api/suivi/${lead.token}`;
+      const res = await fetch(url);
+      const result = await res.json();
+      
+      if (res.ok) {
+        const remoteMessagesStr = isAdmin 
+          ? result.find(l => l.id === lead.id)?.messages 
+          : result.lead?.messages;
+        
+        let remoteMessages = [];
+        try {
+          remoteMessages = typeof remoteMessagesStr === 'string' ? JSON.parse(remoteMessagesStr) : remoteMessagesStr;
+        } catch(e) {}
+
+        if (Array.isArray(remoteMessages) && JSON.stringify(remoteMessages) !== JSON.stringify(messages)) {
+          setMessages(remoteMessages);
+          if (onUpdate) onUpdate(remoteMessages);
+        }
+      }
+    } catch (err) {
+      console.error("Polling error:", err);
+    }
+  };
 
   useEffect(() => {
     if (lead.messages) {
@@ -61,6 +88,12 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
       }
     }
   }, [lead.messages]);
+
+  // Polling Temps Réel (toutes les 5 secondes)
+  useEffect(() => {
+    const interval = setInterval(fetchMessages, 5000);
+    return () => clearInterval(interval);
+  }, [messages, lead.id, lead.token]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -80,6 +113,7 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
       text: newMessage,
       type: finalImage ? 'image' : 'text',
       image: finalImage,
+      timestamp: new Date().toISOString()
     };
 
     try {
@@ -95,7 +129,9 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
       const result = await res.json();
       if (res.ok) {
         setNewMessage('');
-        if (onUpdate) onUpdate(result.messages);
+        const newM = result.messages;
+        setMessages(newM);
+        if (onUpdate) onUpdate(newM);
       }
     } catch (err) {
       console.error(err);
@@ -114,10 +150,31 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
     reader.readAsDataURL(file);
   };
 
+  const chatHeight = isExpanded ? 'calc(100vh - 200px)' : '550px';
+
   return (
-    <div className="chat-container" style={{ display: 'flex', flexDirection: 'column', height: '500px', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', border: '1px solid var(--glass-border)', overflow: 'hidden' }}>
-      <div className="chat-header" style={{ padding: '12px 15px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--neon-blue)' }}>🖋️ Échanges avec l'Expert</span>
+    <div className="chat-container" style={{ 
+      display: 'flex', flexDirection: 'column', height: chatHeight, 
+      background: 'rgba(0,0,0,0.5)', borderRadius: '12px', 
+      border: '1px solid var(--glass-border)', overflow: 'hidden', 
+      transition: 'height 0.4s ease',
+      boxShadow: isExpanded ? '0 0 50px rgba(0,0,0,0.5)' : 'none',
+      position: isExpanded ? 'fixed' : 'relative',
+      top: isExpanded ? '100px' : 'auto',
+      left: isExpanded ? '5%' : 'auto',
+      width: isExpanded ? '90%' : '100%',
+      zIndex: isExpanded ? 1000 : 1
+    }}>
+      <div className="chat-header" style={{ padding: '12px 15px', background: 'rgba(255,255,255,0.08)', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--neon-blue)' }}>🖋️ Échanges avec l'Expert</span>
+          <button 
+            onClick={() => setIsExpanded(!isExpanded)} 
+            style={{ background: 'rgba(0,229,255,0.1)', border: '1px solid var(--neon-blue)', color: 'var(--neon-blue)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer' }}
+          >
+            {isExpanded ? '⤫ Réduire' : '⤢ Agrandir'}
+          </button>
+        </div>
       </div>
 
       <div className="chat-messages" style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -131,7 +188,7 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
           return (
             <div key={i} style={{ 
               alignSelf: isMe ? 'flex-end' : 'flex-start',
-              maxWidth: '85%',
+              maxWidth: isExpanded ? '70%' : '85%',
               display: 'flex',
               flexDirection: 'column',
               alignItems: isMe ? 'flex-end' : 'flex-start'
@@ -139,13 +196,13 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
               <div style={{ 
                 padding: '12px 16px', 
                 borderRadius: isMe ? '18px 18px 2px 18px' : '18px 18px 18px 2px',
-                background: isMe ? '#ffc800' : 'rgba(255,255,255,0.1)',
+                background: isMe ? '#ffc800' : 'rgba(255,255,255,0.12)',
                 color: isMe ? '#000' : '#fff',
                 fontSize: '0.95rem',
                 boxShadow: isMe ? '0 0 15px rgba(255,200,0,0.2)' : 'none'
               }}>
                 {msg.type === 'image' ? (
-                  <img src={msg.image} alt="Upload" style={{ maxWidth: '100%', borderRadius: '10px', cursor: 'pointer' }} onClick={() => window.open(msg.image)} />
+                  <img src={msg.image} alt="Upload" style={{ maxWidth: '100%', borderRadius: '10px', cursor: 'pointer', display: 'block' }} onClick={() => window.open(msg.image)} />
                 ) : (
                   msg.text
                 )}
@@ -161,7 +218,7 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
 
       <div className="chat-input" style={{ 
         padding: '12px', 
-        background: 'rgba(255,255,255,0.05)', 
+        background: 'rgba(255,255,255,0.1)', 
         borderTop: '1px solid var(--glass-border)', 
         display: 'flex', 
         gap: '10px',

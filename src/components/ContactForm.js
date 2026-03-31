@@ -41,17 +41,18 @@ export default function ContactForm() {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  if (status === 'success') {
     return (
       <div className="glass-panel text-center">
-        <h3 className="neon-text mb-4" style={{fontSize: '2rem'}}>Demande Envoyée !</h3>
-        <p style={{color: 'var(--text-secondary)', marginBottom: '2rem'}}>
-          Merci pour votre message. Nous l'avons bien reçu et vous recontacterons très très vite.
+        <h3 className="neon-text mb-4" style={{fontSize: '2rem'}}>Demande Envoyée ! 🙌</h3>
+        <p style={{color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: '1.6'}}>
+          Merci pour votre message. Nous l'avons bien reçu ! 🛒🔧
+        </p>
+        <p style={{color: 'var(--neon-blue)', marginBottom: '2rem', fontWeight: 'bold', border: '1px dashed var(--neon-blue)', padding: '15px', borderRadius: '8px', background: 'rgba(0,229,255,0.05)'}}>
+          📧 Consultez vos emails : un <strong>lien de suivi sécurisé</strong> vient de vous être envoyé pour suivre l'avancée de votre projet et <strong>chatter en direct</strong> avec notre technicien.
         </p>
         <button onClick={() => setStatus('idle')} className="neon-button">Nouvelle Demande</button>
       </div>
     );
-  }
 
   return (
     <form onSubmit={handleSubmit} className="glass-panel">

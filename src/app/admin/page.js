@@ -30,15 +30,40 @@ const compressImage = (base64Str, maxWidth = 1000, maxHeight = 1000) => {
       resolve(canvas.toDataURL('image/jpeg', 0.7)); // Qualité 70% pour un poids plume
     };
   });
-};
-
-// Composant Chat Partagé
+};// Composant Chat Partagé
 function LeadChat({ lead, isAdmin, onUpdate }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const chatEndRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  const fetchMessages = async () => {
+    try {
+      const url = isAdmin ? `/api/admin/leads` : `/api/suivi/${lead.token}`;
+      const res = await fetch(url);
+      const result = await res.json();
+      
+      if (res.ok) {
+        const remoteMessagesStr = isAdmin 
+          ? result.find(l => l.id === lead.id)?.messages 
+          : result.lead?.messages;
+        
+        let remoteMessages = [];
+        try {
+          remoteMessages = typeof remoteMessagesStr === 'string' ? JSON.parse(remoteMessagesStr) : remoteMessagesStr;
+        } catch(e) {}
+
+        if (Array.isArray(remoteMessages) && JSON.stringify(remoteMessages) !== JSON.stringify(messages)) {
+          setMessages(remoteMessages);
+          if (onUpdate) onUpdate(remoteMessages);
+        }
+      }
+    } catch (err) {
+      console.error("Polling error:", err);
+    }
+  };
 
   useEffect(() => {
     if (lead.messages) {
@@ -49,6 +74,12 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
       }
     }
   }, [lead.messages]);
+
+  // Polling Temps Réel (toutes les 5 secondes)
+  useEffect(() => {
+    const interval = setInterval(fetchMessages, 5000);
+    return () => clearInterval(interval);
+  }, [messages, lead.id, lead.token]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -94,7 +125,9 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
       const result = await res.json();
       if (res.ok) {
         setNewMessage('');
-        if (onUpdate) onUpdate(result.messages);
+        const newM = result.messages;
+        setMessages(newM);
+        if (onUpdate) onUpdate(newM);
       }
     } catch (err) {
       console.error(err);
@@ -122,22 +155,46 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
         body: JSON.stringify({ id: lead.id, clearMessages: true })
       });
       const result = await res.json();
-      if (res.ok && onUpdate) onUpdate(result.messages);
+      if (res.ok) {
+        setMessages(result.messages);
+        if (onUpdate) onUpdate(result.messages);
+      }
     } catch (e) { console.error(e); }
   };
 
+  const chatHeight = isExpanded ? 'calc(100vh - 200px)' : '550px';
+
   return (
-    <div className="chat-container" style={{ display: 'flex', flexDirection: 'column', height: '450px', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', border: '1px solid var(--glass-border)', overflow: 'hidden' }}>
-      <div className="chat-header" style={{ padding: '10px 15px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--neon-blue)' }}>🤝 Échanges Projet</span>
+    <div className="chat-container" style={{ 
+      display: 'flex', flexDirection: 'column', height: chatHeight, 
+      background: 'rgba(0,0,0,0.5)', borderRadius: '12px', 
+      border: '1px solid var(--glass-border)', overflow: 'hidden', 
+      transition: 'height 0.4s ease',
+      boxShadow: isExpanded ? '0 0 50px rgba(0,0,0,0.5)' : 'none',
+      position: isExpanded ? 'fixed' : 'relative',
+      top: isExpanded ? '100px' : 'auto',
+      left: isExpanded ? '5%' : 'auto',
+      width: isExpanded ? '90%' : '100%',
+      zIndex: isExpanded ? 1000 : 1
+    }}>
+      <div className="chat-header" style={{ padding: '12px 15px', background: 'rgba(255,255,255,0.08)', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--neon-blue)' }}>🤝 Échanges Projet</span>
+          <button 
+            onClick={() => setIsExpanded(!isExpanded)} 
+            style={{ background: 'rgba(0,229,255,0.1)', border: '1px solid var(--neon-blue)', color: 'var(--neon-blue)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer' }}
+          >
+            {isExpanded ? '⤫ Réduire' : '⤢ Agrandir'}
+          </button>
+        </div>
         {isAdmin && (
           <button onClick={clearHistory} style={{ background: 'none', border: 'none', color: '#ff4444', fontSize: '0.7rem', cursor: 'pointer' }}>🗑 Effacer historique</button>
         )}
       </div>
 
-      <div className="chat-messages" style={{ flex: 1, overflowY: 'auto', padding: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div className="chat-messages" style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {messages.length === 0 && (
-          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '20px' }}>
+          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '30px' }}>
             Aucun message.
           </div>
         )}
@@ -146,26 +203,26 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
           return (
             <div key={i} style={{ 
               alignSelf: isMe ? 'flex-end' : 'flex-start',
-              maxWidth: '85%',
+              maxWidth: isExpanded ? '70%' : '90%',
               display: 'flex',
               flexDirection: 'column',
               alignItems: isMe ? 'flex-end' : 'flex-start'
             }}>
               <div style={{ 
-                padding: '10px 14px', 
-                borderRadius: isMe ? '15px 15px 2px 15px' : '15px 15px 15px 2px',
-                background: isMe ? 'var(--neon-blue)' : 'rgba(255,255,255,0.1)',
+                padding: '12px 16px', 
+                borderRadius: isMe ? '18px 18px 2px 18px' : '18px 18px 18px 2px',
+                background: isMe ? 'var(--neon-blue)' : 'rgba(255,255,255,0.12)',
                 color: isMe ? '#000' : '#fff',
-                fontSize: '0.9rem',
-                boxShadow: isMe ? '0 0 10px rgba(0,229,255,0.3)' : 'none'
+                fontSize: '0.95rem',
+                boxShadow: isMe ? '0 0 15px rgba(0,229,255,0.2)' : 'none'
               }}>
                 {msg.type === 'image' ? (
-                  <img src={msg.image} alt="Upload" style={{ maxWidth: '100%', borderRadius: '8px', cursor: 'pointer' }} onClick={() => window.open(msg.image)} />
+                  <img src={msg.image} alt="Upload" style={{ maxWidth: '100%', borderRadius: '10px', cursor: 'pointer', display: 'block' }} onClick={() => window.open(msg.image)} />
                 ) : (
                   msg.text
                 )}
               </div>
-              <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginTop: '5px', padding: '0 5px' }}>
                 {msg.sender === 'admin' ? 'Expert' : 'Client'} • {new Date(msg.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
@@ -175,13 +232,12 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
       </div>
 
       <div className="chat-input" style={{ 
-        padding: '10px', 
-        background: 'rgba(255,255,255,0.05)', 
+        padding: '15px', 
+        background: 'rgba(255,255,255,0.08)', 
         borderTop: '1px solid var(--glass-border)', 
         display: 'flex', 
-        gap: '8px',
-        alignItems: 'center',
-        flexWrap: 'nowrap' // Important pour garder le bouton visible
+        gap: '10px',
+        alignItems: 'center'
       }}>
         <input 
           type="file" 
@@ -194,8 +250,8 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
           onClick={() => fileInputRef.current.click()}
           style={{ 
             background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', 
-            width: '38px', height: '38px', cursor: 'pointer', display: 'flex', 
-            alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem',
+            width: '42px', height: '42px', cursor: 'pointer', display: 'flex', 
+            alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem',
             flexShrink: 0 
           }}
         >
@@ -209,14 +265,14 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
           placeholder="Message..."
           style={{ 
             flex: 1, 
-            minWidth: '0', // PERMET AU CHAMP DE RÉDUIRE SUR MOBILE
-            background: 'rgba(0,0,0,0.2)', 
+            minWidth: '0',
+            background: 'rgba(0,0,0,0.3)', 
             border: '1px solid var(--glass-border)', 
-            borderRadius: '20px', 
-            height: '38px',
-            padding: '0 15px', 
+            borderRadius: '25px', 
+            height: '42px',
+            padding: '0 20px', 
             color: '#fff', 
-            fontSize: '0.9rem' 
+            fontSize: '0.95rem' 
           }}
         />
         <button 
@@ -224,7 +280,7 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
           disabled={isSending || (!newMessage.trim())}
           style={{ 
             background: 'var(--neon-blue)', color: '#000', border: 'none', borderRadius: '50%', 
-            width: '38px', height: '38px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem',
+            width: '42px', height: '42px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.2rem',
             flexShrink: 0,
             opacity: isSending || !newMessage.trim() ? 0.5 : 1
           }}
