@@ -500,6 +500,7 @@ export default function SuiviProjet({ params }) {
                 <p style={{ color: '#00ff66', fontWeight: 'bold', fontSize: '1.1rem', margin: 0 }}>✓ Devis Validé</p>
                 <img src={data.quote_signature} alt="Signature" style={{ maxHeight: '60px', marginTop: '10px', filter: 'invert(1)' }} />
                 <div style={{ marginTop: '10px', fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', borderTop: '1px solid rgba(0,255,100,0.2)', paddingTop: '8px' }}>
+                  💰 Montant validé : <strong>{data.quote_amount} € TTC</strong><br/>
                   📅 Signé le : {new Date(data.quote_validated_at).toLocaleString('fr-FR')}<br/>
                   🌐 IP : {data.quote_ip}
                 </div>
