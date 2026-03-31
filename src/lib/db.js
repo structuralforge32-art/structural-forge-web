@@ -84,6 +84,8 @@ export async function openDB() {
         status TEXT DEFAULT 'Création du projet',
         token TEXT UNIQUE,
         history TEXT DEFAULT '{}',
+        admin_notes TEXT DEFAULT '',
+        client_notes TEXT DEFAULT '',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
       
@@ -97,6 +99,8 @@ export async function openDB() {
 
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN token TEXT"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN history TEXT DEFAULT '{}'"); } catch (e) {}
+    try { await localDb.exec("ALTER TABLE leads ADD COLUMN admin_notes TEXT DEFAULT ''"); } catch (e) {}
+    try { await localDb.exec("ALTER TABLE leads ADD COLUMN client_notes TEXT DEFAULT ''"); } catch (e) {}
   }
   return localDb;
 }

@@ -16,10 +16,10 @@ export async function GET() {
 export async function PUT(req) {
   try {
     const body = await req.json();
-    const { id, status } = body;
+    const { id, status, admin_notes, client_notes } = body;
     
-    if (!id || !status) {
-      return NextResponse.json({ error: 'Données manquantes' }, { status: 400 });
+    if (!id) {
+      return NextResponse.json({ error: 'ID manquant' }, { status: 400 });
     }
 
     const db = await openDB();
@@ -29,25 +29,45 @@ export async function PUT(req) {
     if (!lead) {
       return NextResponse.json({ error: 'Lead introuvable' }, { status: 404 });
     }
-    // Update the status and history
-    let historyObj = {};
-    try {
-      if (lead.history) historyObj = JSON.parse(lead.history);
-    } catch(e) {}
-    
-    // Add current timestamp for this new status if not already present
-    historyObj[status] = new Date().toISOString();
-    const newHistory = JSON.stringify(historyObj);
 
-    await db.run('UPDATE leads SET status = ?, history = ? WHERE id = ?', [status, newHistory, id]);
+    // Prepare update fields
+    let updateFields = [];
+    let params = [];
 
-    // Send the email update to the client
-    try {
+    if (status !== undefined) {
+      // Update history if status changed
+      let historyObj = {};
+      try {
+        if (lead.history) historyObj = JSON.parse(lead.history);
+      } catch(e) {}
+      
       if (status !== lead.status) {
-        await sendClientUpdate({ ...lead, status });
+        historyObj[status] = new Date().toISOString();
+        updateFields.push('status = ?', 'history = ?');
+        params.push(status, JSON.stringify(historyObj));
+        
+        // Send email notification for status change
+        try {
+          await sendClientUpdate({ ...lead, status });
+        } catch (mailError) {
+          console.error("Erreur d'email au client:", mailError);
+        }
       }
-    } catch (mailError) {
-      console.error("Erreur d'email au client:", mailError);
+    }
+
+    if (admin_notes !== undefined) {
+      updateFields.push('admin_notes = ?');
+      params.push(admin_notes);
+    }
+
+    if (client_notes !== undefined) {
+      updateFields.push('client_notes = ?');
+      params.push(client_notes);
+    }
+
+    if (updateFields.length > 0) {
+      params.push(id);
+      await db.run(`UPDATE leads SET ${updateFields.join(', ')} WHERE id = ?`, params);
     }
 
     return NextResponse.json({ success: true });

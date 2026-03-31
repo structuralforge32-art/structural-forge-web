@@ -21,6 +21,8 @@ export default function SuiviProjet({ params }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [clientNotes, setClientNotes] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -30,6 +32,7 @@ export default function SuiviProjet({ params }) {
         
         if (res.ok) {
           setData(result.lead);
+          setClientNotes(result.lead.client_notes || '');
         } else {
           setError(result.error);
         }
@@ -69,6 +72,24 @@ export default function SuiviProjet({ params }) {
       historyDict = JSON.parse(data.history);
     } catch(e) {}
   }
+
+  const saveClientNotes = async () => {
+    setIsSaving(true);
+    try {
+      const res = await fetch(`/api/suivi/${token}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_notes: clientNotes })
+      });
+      if (res.ok) {
+        alert('Vos précisions ont été enregistrées !');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
   
   return (
     <main className="section-container" style={{ minHeight: '100vh', paddingTop: '8rem', maxWidth: '900px', margin: '0 auto' }}>
@@ -171,6 +192,47 @@ export default function SuiviProjet({ params }) {
 
       </div>
 
+      {/* Espace d'échange / Notes */}
+      <div className="glass-panel mt-8">
+        <h2 className="mb-4" style={{fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px'}}>
+          <span>🖋️</span> Espace d'Échange
+        </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--neon-blue)', marginBottom: '10px', fontWeight: 'bold' }}>👤 Notes de l'Expert Structural Forge</label>
+            <div style={{ 
+              padding: '1.2rem', background: 'rgba(0,229,255,0.05)', borderRadius: '8px', 
+              border: '1px solid var(--glass-border)', minHeight: '120px', color: '#fff',
+              fontSize: '0.9rem', whiteSpace: 'pre-wrap', lineHeight: '1.5'
+            }}>
+              {data.admin_notes || "L'expert n'a pas encore laissé de notes particulières pour cette étape."}
+            </div>
+          </div>
+          
+          <div>
+            <label style={{ display: 'block', fontSize: '0.9rem', color: '#ffc800', marginBottom: '10px', fontWeight: 'bold' }}>💬 Vos Précisions / Questions</label>
+            <textarea 
+              value={clientNotes}
+              onChange={(e) => setClientNotes(e.target.value)}
+              placeholder="Besoin d'une modification ? Une question ?"
+              className="form-input"
+              style={{ minHeight: '120px', background: 'rgba(255, 200, 0, 0.03)', border: '1px solid rgba(255, 200, 0, 0.2)', fontSize: '0.9rem' }}
+            />
+            <button 
+              onClick={saveClientNotes}
+              disabled={isSaving}
+              className="neon-button"
+              style={{ 
+                marginTop: '10px', width: '100%', padding: '8px', 
+                background: 'rgba(255, 200, 0, 0.1)', color: '#ffc800', 
+                border: '1px solid rgba(255, 200, 0, 0.4)', fontSize: '0.85rem'
+              }}
+            >
+              {isSaving ? 'Enregistrement...' : '✉️ Enregistrer mes précisions'}
+            </button>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }

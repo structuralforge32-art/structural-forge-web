@@ -206,72 +206,145 @@ export default function AdminDashboard() {
                   </td>
                 </tr>
               )}
-              {leads.map(lead => (
-                <tr key={lead.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                  <td style={{ padding: '1rem', color: 'var(--text-secondary)', verticalAlign: 'top' }}>
-                    {new Date(lead.created_at).toLocaleDateString('fr-FR')}
-                  </td>
-                  <td style={{ padding: '1rem', fontWeight: 'bold', verticalAlign: 'top' }}>{lead.name}</td>
-                  <td style={{ padding: '1rem', verticalAlign: 'top', minWidth: '150px' }}>
-                    <a href={`mailto:${lead.email}`} style={{ color: 'var(--neon-blue)', textDecoration: 'none' }}>{lead.email}</a><br/>
-                    <small style={{color: 'var(--text-secondary)'}}>{lead.phone}</small>
-                  </td>
-                  <td style={{ padding: '1rem', maxWidth: '300px', verticalAlign: 'top' }}>
-                    <strong style={{display: 'block', marginBottom: '0.5rem', color: '#fff'}}>{lead.type}</strong>
-                    <div style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                      {lead.message}
-                    </div>
-                  </td>
-                  <td style={{ padding: '1rem', verticalAlign: 'top' }}>
-                    <span style={{ 
-                      padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', whiteSpace: 'nowrap',
-                      background: lead.status === 'Création du projet' ? 'rgba(0,229,255,0.2)' 
-                                : lead.status === 'Terminé' ? 'rgba(0,255,100,0.2)'
-                                : 'rgba(255, 200, 0, 0.2)',
-                      color: lead.status === 'Création du projet' ? 'var(--neon-blue)' 
-                           : lead.status === 'Terminé' ? '#00ff66'
-                           : '#ffc800'
-                    }}>
-                      {lead.status}
-                    </span>
-                    {lead.token && (
-                      <div style={{marginTop: '10px'}}>
-                        <a href={`/suivi/${lead.token}`} target="_blank" rel="noopener noreferrer" style={{color: 'var(--neon-blue)', fontSize: '0.8rem', textDecoration: 'none'}}>📎 Portail Client</a>
-                      </div>
-                    )}
-                  </td>
-                  <td style={{ padding: '1rem', verticalAlign: 'top', display: 'flex', gap: '8px', flexDirection: 'column' }}>
-                    <select 
-                      onChange={(e) => updateStatus(lead.id, e.target.value)}
-                      value={lead.status}
-                      className="form-input"
-                      style={{ padding: '8px', fontSize: '0.85rem', background: '#0a0f1e' }}
-                    >
-                      <option value="Création du projet">Création du projet</option>
-                      <option value="Validation de faisabilité">Validation de faisabilité</option>
-                      <option value="Devis">Devis</option>
-                      <option value="Modélisation 3D">Modélisation 3D</option>
-                      <option value="Prototypage">Prototypage</option>
-                      <option value="Impression finale">Impression finale</option>
-                      <option value="Facturation">Facturation</option>
-                      <option value="Terminé">Terminé</option>
-                    </select>
+              {leads.map(lead => {
+                const [adminNotes, setAdminNotes] = useState(lead.admin_notes || '');
+                const [isSaving, setIsSaving] = useState(false);
+                const [isExpanded, setIsExpanded] = useState(false);
 
-                    <button 
-                      onClick={() => deleteLead(lead.id)}
-                      style={{
-                        padding: '6px', background: 'rgba(255, 50, 50, 0.1)', color: '#ff4444', 
-                        border: '1px solid rgba(255, 50, 50, 0.3)', borderRadius: '4px', cursor: 'pointer',
-                        fontSize: '0.8rem', width: '100%', textAlign: 'center'
-                      }}
-                      onMouseOver={(e) => Object.assign(e.target.style, { background: 'rgba(255, 50, 50, 0.2)' })}
-                      onMouseOut={(e) => Object.assign(e.target.style, { background: 'rgba(255, 50, 50, 0.1)' })}
-                    >
-                      🗑️ Supprimer
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                const saveNotes = async () => {
+                  setIsSaving(true);
+                  try {
+                    const res = await fetch('/api/admin/leads', {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ id: lead.id, admin_notes: adminNotes })
+                    });
+                    if (res.ok) {
+                      alert('Notes sauvegardées !');
+                    }
+                  } catch (err) {
+                    console.error(err);
+                  } finally {
+                    setIsSaving(false);
+                  }
+                };
+
+                return (
+                  <React.Fragment key={lead.id}>
+                    <tr style={{ borderBottom: isExpanded ? 'none' : '1px solid rgba(255,255,255,0.05)' }}>
+                      <td style={{ padding: '1rem', color: 'var(--text-secondary)', verticalAlign: 'top' }}>
+                        {new Date(lead.created_at).toLocaleDateString('fr-FR')}
+                      </td>
+                      <td style={{ padding: '1rem', fontWeight: 'bold', verticalAlign: 'top' }}>
+                        {lead.name}
+                        <button 
+                          onClick={() => setIsExpanded(!isExpanded)}
+                          style={{ 
+                            display: 'block', marginTop: '5px', fontSize: '0.7rem', color: 'var(--neon-blue)', 
+                            background: 'none', border: 'none', cursor: 'pointer', padding: 0 
+                          }}
+                        >
+                          {isExpanded ? '▲ Cacher Notes' : '▼ Voir Notes'}
+                        </button>
+                      </td>
+                      <td style={{ padding: '1rem', verticalAlign: 'top', minWidth: '150px' }}>
+                        <a href={`mailto:${lead.email}`} style={{ color: 'var(--neon-blue)', textDecoration: 'none' }}>{lead.email}</a><br/>
+                        <small style={{color: 'var(--text-secondary)'}}>{lead.phone}</small>
+                      </td>
+                      <td style={{ padding: '1rem', maxWidth: '300px', verticalAlign: 'top' }}>
+                        <strong style={{display: 'block', marginBottom: '0.5rem', color: '#fff'}}>{lead.type}</strong>
+                        <div style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                          {lead.message}
+                        </div>
+                      </td>
+                      <td style={{ padding: '1rem', verticalAlign: 'top' }}>
+                        <span style={{ 
+                          padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', whiteSpace: 'nowrap',
+                          background: lead.status === 'Création du projet' ? 'rgba(0,229,255,0.2)' 
+                                    : lead.status === 'Terminé' ? 'rgba(0,255,100,0.2)'
+                                    : 'rgba(255, 200, 0, 0.2)',
+                          color: lead.status === 'Création du projet' ? 'var(--neon-blue)' 
+                               : lead.status === 'Terminé' ? '#00ff66'
+                               : '#ffc800'
+                        }}>
+                          {lead.status}
+                        </span>
+                        {lead.token && (
+                          <div style={{marginTop: '10px'}}>
+                            <a href={`/suivi/${lead.token}`} target="_blank" rel="noopener noreferrer" style={{color: 'var(--neon-blue)', fontSize: '0.8rem', textDecoration: 'none'}}>📎 Portail Client</a>
+                          </div>
+                        )}
+                      </td>
+                      <td style={{ padding: '1rem', verticalAlign: 'top', display: 'flex', gap: '8px', flexDirection: 'column' }}>
+                        <select 
+                          onChange={(e) => updateStatus(lead.id, e.target.value)}
+                          value={lead.status}
+                          className="form-input"
+                          style={{ padding: '8px', fontSize: '0.85rem', background: '#0a0f1e' }}
+                        >
+                          <option value="Création du projet">Création du projet</option>
+                          <option value="Validation de faisabilité">Validation de faisabilité</option>
+                          <option value="Devis">Devis</option>
+                          <option value="Modélisation 3D">Modélisation 3D</option>
+                          <option value="Prototypage">Prototypage</option>
+                          <option value="Impression finale">Impression finale</option>
+                          <option value="Facturation">Facturation</option>
+                          <option value="Terminé">Terminé</option>
+                        </select>
+    
+                        <button 
+                          onClick={() => deleteLead(lead.id)}
+                          style={{
+                            padding: '6px', background: 'rgba(255, 50, 50, 0.1)', color: '#ff4444', 
+                            border: '1px solid rgba(255, 50, 50, 0.3)', borderRadius: '4px', cursor: 'pointer',
+                            fontSize: '0.8rem', width: '100%', textAlign: 'center'
+                          }}
+                        >
+                          🗑️ Supprimer
+                        </button>
+                      </td>
+                    </tr>
+                    {isExpanded && (
+                      <tr style={{ background: 'rgba(10,20,40,0.4)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <td colSpan="6" style={{ padding: '1.5rem' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                            <div>
+                              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--neon-blue)', marginBottom: '8px', fontWeight: 'bold' }}>📝 Vos Notes (Admin)</label>
+                              <textarea 
+                                value={adminNotes}
+                                onChange={(e) => setAdminNotes(e.target.value)}
+                                className="form-input"
+                                style={{ minHeight: '100px', fontSize: '0.85rem', background: 'rgba(0,0,0,0.4)' }}
+                                placeholder="Notes internes, détails techniques..."
+                              />
+                              <button 
+                                onClick={saveNotes}
+                                disabled={isSaving}
+                                className="neon-button"
+                                style={{ marginTop: '10px', padding: '6px 12px', fontSize: '0.75rem' }}
+                              >
+                                {isSaving ? 'Enregistrement...' : 'Enregistrer mes notes'}
+                              </button>
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: '0.8rem', color: '#ffc800', marginBottom: '8px', fontWeight: 'bold' }}>💬 Notes du Client</label>
+                              <div style={{ 
+                                padding: '12px', background: 'rgba(0,0,0,0.4)', borderRadius: '8px', 
+                                minHeight: '100px', fontSize: '0.85rem', border: '1px solid rgba(255, 200, 0, 0.2)',
+                                color: lead.client_notes ? '#fff' : 'var(--text-secondary)',
+                                fontStyle: lead.client_notes ? 'normal' : 'italic',
+                                whiteSpace: 'pre-wrap'
+                              }}>
+                                {lead.client_notes || "Aucune note du client pour le moment."}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
             </tbody>
           </table>
         </div>
