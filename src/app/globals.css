@@ -1,0 +1,220 @@
+:root {
+  --bg-color: #050510;
+  --text-primary: #e0e6ed;
+  --text-secondary: #8b9bb4;
+  --neon-blue: #00e5ff;
+  --neon-blue-glow: rgba(0, 229, 255, 0.4);
+  --dark-glass: rgba(10, 15, 30, 0.6);
+  --glass-border: rgba(0, 229, 255, 0.2);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: inherit;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.glass-panel {
+  background: var(--dark-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  padding: 2rem;
+}
+
+.neon-text {
+  color: var(--neon-blue);
+  /* Effet néon plus doux et luxueux */
+  text-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+}
+
+.neon-button {
+  display: inline-block;
+  background: rgba(0, 229, 255, 0.05);
+  color: var(--neon-blue);
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  padding: 12px 28px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 1px;
+  text-decoration: none;
+  text-align: center;
+}
+
+.neon-button:hover {
+  background: var(--neon-blue);
+  color: #000;
+  box-shadow: 0 4px 15px var(--neon-blue-glow);
+  transform: translateY(-2px);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  color: #fff;
+  transition: all 0.3s ease;
+  font-family: var(--font-inter);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--neon-blue);
+  box-shadow: 0 0 10px var(--neon-blue-glow);
+}
+
+.form-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.bg-grid {
+  display: none; /* Grille supprimée pour un style moins rétro */
+}
+
+/* Watermark du logo en arrière-plan */
+.bg-logo-watermark {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  background-image: url('/logo.png');
+  background-size: cover; /* Prend tout l'espace */
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.15; /* Plus visible */
+  pointer-events: none;
+}
+
+/* Effet de dégradé radial global très doux vers le bas */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at top right, rgba(0, 229, 255, 0.03), transparent 50%),
+              radial-gradient(circle at bottom left, rgba(0, 229, 255, 0.03), transparent 50%);
+  z-index: -2;
+  pointer-events: none;
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 1.2rem 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+  background: rgba(5, 5, 16, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.navbar-brand {
+  font-family: var(--font-orbitron);
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Sections */
+.section-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6rem 1.5rem;
+}
+
+.hero-section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.hero-title {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin-bottom: 2.5rem;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.service-card {
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-10px);
+}
+
+.service-icon {
+  font-size: 3rem;
+  margin-bottom: 1.5rem;
+  color: var(--neon-blue);
+  text-shadow: 0 0 15px var(--neon-blue-glow);
+}
+
+/* Utils */
+.text-center { text-align: center; }
+.mb-4 { margin-bottom: 1rem; }
+.mt-8 { margin-top: 2rem; }
