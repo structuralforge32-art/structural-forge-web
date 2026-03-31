@@ -85,8 +85,7 @@ export async function openDB() {
     return {
       run: async (query, params = []) => {
         let pgQuery = query;
-        let idx = 1;
-        pgQuery = pgQuery.replace(/\?/g, () => `$${idx++}`);
+        params.forEach((_, i) => { pgQuery = pgQuery.replace('?', `$${i + 1}`); });
         if (pgQuery.trim().toUpperCase().startsWith('INSERT')) {
             pgQuery += ' RETURNING id';
         }
@@ -95,15 +94,13 @@ export async function openDB() {
       },
       all: async (query, params = []) => {
         let pgQuery = query;
-        let idx = 1;
-        pgQuery = pgQuery.replace(/\?/g, () => `$${idx++}`);
+        params.forEach((_, i) => { pgQuery = pgQuery.replace('?', `$${i + 1}`); });
         const res = await pool.query(pgQuery, params);
         return res.rows;
       },
       get: async (query, params = []) => {
         let pgQuery = query;
-        let idx = 1;
-        pgQuery = pgQuery.replace(/\?/g, () => `$${idx++}`);
+        params.forEach((_, i) => { pgQuery = pgQuery.replace('?', `$${i + 1}`); });
         const res = await pool.query(pgQuery, params);
         return res.rows[0];
       }

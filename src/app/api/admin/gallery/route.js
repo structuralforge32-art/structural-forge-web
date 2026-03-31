@@ -20,6 +20,8 @@ export async function POST(req) {
     const file = formData.get('file');
     const caption = formData.get('caption') || '';
 
+    console.log('API Gallery Upload Attempt:', { fileName: file?.name, caption, size: file?.size });
+
     if (!file) {
       return NextResponse.json({ error: 'Aucun fichier reçu' }, { status: 400 });
     }
@@ -43,8 +45,11 @@ export async function POST(req) {
 
     return NextResponse.json({ success: true, url: publicUrl });
   } catch (error) {
-    console.error('Erreur API Gallery POST:', error);
-    return NextResponse.json({ error: 'Erreur d\'importation' }, { status: 500 });
+    console.error('Erreur API Gallery POST détaillée:', error);
+    return NextResponse.json({ 
+      error: 'Erreur d\'importation', 
+      details: error.message 
+    }, { status: 500 });
   }
 }
 

@@ -16,8 +16,10 @@ export async function GET() {
 export async function PUT(req) {
   try {
     const body = await req.json();
-    const { id, status, admin_notes, internal_notes, quote_amount, client_notes, message, clearMessages, markAsRead } = body;
+    const { id, status, admin_notes, client_notes, internal_notes, quote_amount, message, clearMessages, markAsRead } = body;
     
+    console.log('API Admin Lead Update:', { id, status, hasMessage: !!message });
+
     if (!id) {
       return NextResponse.json({ error: 'ID manquant' }, { status: 400 });
     }

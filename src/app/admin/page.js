@@ -36,7 +36,6 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [pendingFile, setPendingFile] = useState(null);
   const chatEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -106,6 +105,14 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
     
     if (imageContent && fileType === 'image') {
       finalFile = await compressImage(imageContent);
+    } else if (imageContent && fileType === 'pdf') {
+      // Check PDF size (Base64 is ~33% larger than binary)
+      const sizeInMB = (imageContent.length * 3) / 4 / (1024 * 1024);
+      if (sizeInMB > 4.5) {
+        alert("Le fichier PDF est trop volumineux (> 4.5 Mo). Veuillez le compresser avant l'envoi.");
+        setIsSending(false);
+        return;
+      }
     }
 
     const msgObj = {
@@ -113,8 +120,7 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
       text: newMessage,
       type: imageContent ? fileType : 'text',
       image: finalFile,
-      fileName: isAdmin && fileType === 'pdf' ? (fileInputRef.current?.files[0]?.name || 'document.pdf') : null,
-      timestamp: new Date().toISOString()
+      fileName: isAdmin && fileType === 'pdf' ? (fileInputRef.current?.files[0]?.name || 'document.pdf') : null
     };
 
     try {
@@ -130,14 +136,15 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
       const result = await res.json();
       if (res.ok) {
         setNewMessage('');
-        setPendingFile(null);
-        if (fileInputRef.current) fileInputRef.current.value = '';
         const newM = result.messages;
         setMessages(newM);
         if (onUpdate) onUpdate(newM);
+      } else {
+        alert(`Erreur: ${result.error || 'Impossible d\'envoyer le message'}`);
       }
     } catch (err) {
       console.error(err);
+      alert("Erreur de connexion au serveur.");
     } finally {
       setIsSending(false);
     }
@@ -146,7 +153,8 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setPendingFile(file.name);
+    
+    // Check if PDF or Image
     const reader = new FileReader();
     reader.onloadend = () => {
       sendMessage(reader.result);
@@ -292,12 +300,12 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
         />
         <button 
           onClick={() => sendMessage()}
-          disabled={isSending || (!newMessage.trim() && !pendingFile)}
+          disabled={isSending || (!newMessage.trim())}
           style={{ 
             background: 'var(--neon-blue)', color: '#000', border: 'none', borderRadius: '50%', 
             width: '42px', height: '42px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.2rem',
             flexShrink: 0,
-            opacity: isSending || (!newMessage.trim() && !pendingFile) ? 0.5 : 1
+            opacity: isSending || !newMessage.trim() ? 0.5 : 1
           }}
         >
           {isSending ? '...' : '➤'}
@@ -325,7 +333,7 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
           id: lead.id, 
           admin_notes: adminNotes,
           internal_notes: internalNotes,
-          quote_amount: parseFloat(quoteAmount) || 0
+          quote_amount: quoteAmount
         })
       });
       if (res.ok) {
@@ -408,21 +416,6 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
             <option value="Terminé">Terminé</option>
           </select>
 
-          {lead.token && (
-            <a 
-              href={`/suivi/${lead.token}`} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              style={{
-                padding: '6px', background: 'rgba(0,229,255,0.1)', color: 'var(--neon-blue)', 
-                border: '1px solid rgba(0,229,255,0.3)', borderRadius: '4px', cursor: 'pointer',
-                fontSize: '0.8rem', width: '100%', textAlign: 'center', display: 'block',
-                textDecoration: 'none'
-              }}
-            >
-              👁️ Vue Client
-            </a>
-          )}
           <button 
             onClick={() => deleteLead(lead.id)}
             style={{
@@ -444,16 +437,18 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--neon-blue)', marginBottom: '8px', fontWeight: 'bold' }}>💰 Montant du Devis TTC (€)</label>
-                  <input 
-                    type="text"
-                    inputMode="numeric"
-                    value={quoteAmount || ''}
-                    onChange={(e) => setQuoteAmount(e.target.value)}
-                    className="form-input"
-                    style={{ fontSize: '1rem', background: 'rgba(0,0,0,0.4)', WebkitAppearance: 'none', MozAppearance: 'textfield' }}
-                    placeholder="Saisir le montant (ex: 1500)"
-                  />
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--neon-blue)', marginBottom: '8px', fontWeight: 'bold' }}>💰 Montant du Devis (TTC)</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <input 
+                      type="number" 
+                      value={quoteAmount}
+                      onChange={(e) => setQuoteAmount(parseFloat(e.target.value) || 0)}
+                      className="form-input"
+                      style={{ flex: 1, fontSize: '0.9rem', background: 'rgba(0,0,0,0.4)' }}
+                      placeholder="Ex: 1500"
+                    />
+                    <span style={{color: '#fff'}}>€ TTC</span>
+                  </div>
                 </div>
 
                 <div>
@@ -581,6 +576,11 @@ export default function AdminDashboard() {
     e.preventDefault();
     if (!selectedFile) return;
 
+    if (selectedFile.size > 4.5 * 1024 * 1024) {
+      alert("L'image est trop volumineuse (> 4.5 Mo).");
+      return;
+    }
+
     setUploadLoading(true);
     try {
       const formData = new FormData();
@@ -592,15 +592,21 @@ export default function AdminDashboard() {
         body: formData
       });
 
+      const result = await res.json();
+
       if (res.ok) {
         setNewCaption('');
         setSelectedFile(null);
         // Reset file input
         e.target.reset();
         fetchGallery();
+        alert('Image ajoutée avec succès !');
+      } else {
+        alert(`Erreur: ${result.error || 'Importation échouée'}`);
       }
     } catch (err) {
       console.error(err);
+      alert("Erreur réseau lors de l'importation.");
     } finally {
       setUploadLoading(false);
     }
