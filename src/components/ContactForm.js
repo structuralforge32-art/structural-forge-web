@@ -41,6 +41,7 @@ export default function ContactForm() {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  if (status === 'success') {
     return (
       <div className="glass-panel text-center">
         <h3 className="neon-text mb-4" style={{fontSize: '2rem'}}>Demande Envoyée ! 🙌</h3>
@@ -53,6 +54,7 @@ export default function ContactForm() {
         <button onClick={() => setStatus('idle')} className="neon-button">Nouvelle Demande</button>
       </div>
     );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="glass-panel">

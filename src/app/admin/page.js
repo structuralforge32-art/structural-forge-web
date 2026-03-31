@@ -173,8 +173,9 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
       boxShadow: isExpanded ? '0 0 100px rgba(0,0,0,0.8)' : 'none',
       position: isExpanded ? 'fixed' : 'relative',
       top: isExpanded ? '4vh' : 'auto',
-      left: isExpanded ? '4%' : 'auto',
-      width: isExpanded ? '92%' : '100%',
+      left: isExpanded ? '50%' : 'auto',
+      transform: isExpanded ? 'translateX(-50%)' : 'none',
+      width: isExpanded ? 'min(92%, 800px)' : '100%',
       zIndex: isExpanded ? 1000 : 1
     }}>
       <div className="chat-header" style={{ padding: '12px 15px', background: 'rgba(255,255,255,0.08)', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
