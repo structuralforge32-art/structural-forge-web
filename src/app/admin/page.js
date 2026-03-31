@@ -351,6 +351,21 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
   const [isSaving, setIsSaving] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState(lead.messages || '[]');
+  const [stlData, setStlData] = useState(lead.stl_data || '');
+  const stlInputRef = useRef(null);
+
+  const handleStlUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 4.5 * 1024 * 1024) {
+      alert("⚠️ Attention : Ce fichier dépasse 4.5 Mo. Vercel risque de bloquer l'enregistrement. Essayez de compresser votre STL si possible.");
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setStlData(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const saveDetails = async () => {
     setIsSaving(true);
@@ -362,7 +377,8 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
           id: lead.id, 
           admin_notes: adminNotes,
           internal_notes: internalNotes,
-          quote_amount: quoteAmount
+          quote_amount: quoteAmount,
+          stl_data: stlData
         })
       });
       if (res.ok) {
@@ -505,6 +521,43 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
                     style={{ minHeight: '120px', fontSize: '0.85rem', background: 'rgba(0,229,255,0.05)', border: '1px solid rgba(0,229,255,0.2)' }}
                     placeholder="Informations visibles par le client sur son portail..."
                   />
+                </div>
+
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '15px' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#00ff66', marginBottom: '8px', fontWeight: 'bold' }}>📦 Modèle 3D Prototypage (.stl)</label>
+                  <input 
+                    type="file" 
+                    accept=".stl" 
+                    onChange={handleStlUpload} 
+                    ref={stlInputRef}
+                    style={{ display: 'none' }}
+                  />
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <button 
+                      onClick={() => stlInputRef.current.click()}
+                      style={{ 
+                        flex: 1, padding: '8px', background: 'rgba(0,255,100,0.1)', 
+                        border: '1px solid #00ff66', color: '#00ff66', borderRadius: '4px', cursor: 'pointer',
+                        fontSize: '0.8rem'
+                      }}
+                    >
+                      {stlData ? '🔄 Changer le fichier STL' : '📁 Charger un fichier STL'}
+                    </button>
+                    {stlData && (
+                      <button 
+                        onClick={() => setStlData('')}
+                        style={{ padding: '8px', background: 'rgba(255,0,0,0.1)', border: '1px solid #ff4444', color: '#ff4444', borderRadius: '4px', cursor: 'pointer' }}
+                        title="Supprimer le modèle"
+                      >
+                        🗑️
+                      </button>
+                    )}
+                  </div>
+                  {stlData && (
+                    <div style={{ fontSize: '0.7rem', color: '#00ff66', marginTop: '5px' }}>
+                      ✅ Un modèle 3D est actuellement associé à ce projet.
+                    </div>
+                  )}
                 </div>
 
                 <button 

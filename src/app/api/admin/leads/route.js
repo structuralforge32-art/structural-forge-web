@@ -16,7 +16,7 @@ export async function GET() {
 export async function PUT(req) {
   try {
     const body = await req.json();
-    const { id, status, admin_notes, client_notes, internal_notes, quote_amount, message, clearMessages, markAsRead } = body;
+    const { id, status, admin_notes, client_notes, internal_notes, quote_amount, message, stl_data, clearMessages, markAsRead } = body;
     
     const leadId = Number(id);
     console.log('--- API ADMIN LEADS PUT START ---');
@@ -83,6 +83,10 @@ export async function PUT(req) {
     if (client_notes !== undefined) {
       updateFields.push('client_notes = ?');
       params.push(client_notes);
+    }
+    if (stl_data !== undefined) {
+      updateFields.push('stl_data = ?');
+      params.push(stl_data);
     }
 
     // Gestion du Chat (messages)

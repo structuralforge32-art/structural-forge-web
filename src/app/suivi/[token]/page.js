@@ -1,5 +1,11 @@
-'use client';
 import React, { useState, useEffect, useRef, use } from 'react';
+import dynamic from 'next/dynamic';
+
+// On importe le visualiseur 3D dynamiquement pour le charger uniquement côté client
+const STLViz = dynamic(() => import('@/components/STLViz'), { 
+  ssr: false,
+  loading: () => <div style={{ height: '400px', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--neon-blue)' }}>Initialisation du moteur 3D...</div>
+});
 
 // Helper pour compresser les images avant envoi (Base64 optimisé)
 const compressImage = (base64Str, maxWidth = 1000, maxHeight = 1000) => {
@@ -620,6 +626,19 @@ export default function SuiviProjet({ params }) {
           })}
         </div>
       </div>
+
+      {/* Visualisation 3D (Si disponible) */}
+      {data.stl_data && (
+        <div className="glass-panel" style={{ marginTop: '2rem', padding: '2rem' }}>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: 'var(--neon-blue)', borderBottom: '1px solid rgba(0,229,255,0.1)', paddingBottom: '10px' }}>
+            📦 Prototype 3D Interactif
+          </h2>
+          <STLViz stlData={data.stl_data} />
+          <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+            Le prototype numérique est prêt. Vous pouvez manipuler la pièce pour l'observer sous tous les angles.
+          </p>
+        </div>
+      )}
 
       {/* Chat Collaboratif avec Expert */}
       <div className="glass-panel" style={{ marginTop: '2rem' }}>
