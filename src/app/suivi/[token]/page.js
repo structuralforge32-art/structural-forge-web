@@ -43,6 +43,25 @@ const STEPS = [
   "Terminé"
 ];
 
+// Helper pour ouvrir les fichiers Base64 (PDF/Images) de manière sécurisée
+const openBase64File = (base64Data) => {
+  if (!base64Data) return;
+  try {
+    const [header, content] = base64Data.split(',');
+    const mimeMatch = header.match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : '';
+    const binary = atob(content);
+    const array = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i);
+    const blob = new Blob([array], { type: mime });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  } catch (e) {
+    console.error("Erreur d'ouverture du fichier:", e);
+    window.open(base64Data, '_blank');
+  }
+};
+
 // Composant Signature Pad (Canvas)
 function SignaturePad({ onSave, onClear }) {
   const canvasRef = useRef(null);
@@ -288,9 +307,9 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
                 boxShadow: isMe ? '0 0 15px rgba(255,200,0,0.2)' : 'none'
               }}>
                 {msg.type === 'image' ? (
-                  <img src={msg.image} alt="Upload" style={{ maxWidth: '100%', borderRadius: '10px', cursor: 'pointer', display: 'block' }} onClick={() => window.open(msg.image)} />
+                  <img src={msg.image} alt="Upload" style={{ maxWidth: '100%', borderRadius: '10px', cursor: 'pointer', display: 'block' }} onClick={() => openBase64File(msg.image)} />
                 ) : msg.type === 'pdf' ? (
-                  <div onClick={() => window.open(msg.image)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div onClick={() => openBase64File(msg.image)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span style={{fontSize: '1.5rem'}}>📄</span>
                     <div style={{fontSize: '0.8rem', textDecoration: 'underline'}}>Ouvrir le Devis/Facture PDF</div>
                   </div>
