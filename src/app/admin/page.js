@@ -1,10 +1,181 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+
+// Composant Chat Partagé
+function LeadChat({ lead, isAdmin, onUpdate }) {
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const chatEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (lead.messages) {
+      try {
+        setMessages(JSON.parse(lead.messages));
+      } catch (e) {
+        setMessages([]);
+      }
+    }
+  }, [lead.messages]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const sendMessage = async (imageContent = null) => {
+    if (!newMessage.trim() && !imageContent) return;
+    setIsSending(true);
+
+    const msgObj = {
+      sender: isAdmin ? 'admin' : 'client',
+      text: newMessage,
+      type: imageContent ? 'image' : 'text',
+      image: imageContent,
+    };
+
+    try {
+      const url = isAdmin ? '/api/admin/leads' : `/api/suivi/${lead.token}/notes`;
+      const res = await fetch(url, {
+        method: isAdmin ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          id: lead.id, 
+          message: msgObj 
+        })
+      });
+      const result = await res.json();
+      if (res.ok) {
+        setNewMessage('');
+        if (onUpdate) onUpdate(result.messages);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("L'image est trop lourde (max 2Mo)");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      sendMessage(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const clearHistory = async () => {
+    if (!isAdmin || !window.confirm("Effacer tout l'historique de discussion ?")) return;
+    try {
+      const res = await fetch('/api/admin/leads', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: lead.id, clearMessages: true })
+      });
+      const result = await res.json();
+      if (res.ok && onUpdate) onUpdate(result.messages);
+    } catch (e) { console.error(e); }
+  };
+
+  return (
+    <div className="chat-container" style={{ display: 'flex', flexDirection: 'column', height: '400px', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', border: '1px solid var(--glass-border)', overflow: 'hidden' }}>
+      <div className="chat-header" style={{ padding: '10px 15px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--neon-blue)' }}>🤝 Espace d'Échange Projet</span>
+        {isAdmin && (
+          <button onClick={clearHistory} style={{ background: 'none', border: 'none', color: '#ff4444', fontSize: '0.7rem', cursor: 'pointer' }}>🗑 Effacer historique</button>
+        )}
+      </div>
+
+      <div className="chat-messages" style={{ flex: 1, overflowY: 'auto', padding: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {messages.length === 0 && (
+          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '20px' }}>
+            Aucun message. Commencez la discussion !
+          </div>
+        )}
+        {messages.map((msg, i) => {
+          const isMe = (isAdmin && msg.sender === 'admin') || (!isAdmin && msg.sender === 'client');
+          return (
+            <div key={i} style={{ 
+              alignSelf: isMe ? 'flex-end' : 'flex-start',
+              maxWidth: '80%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: isMe ? 'flex-end' : 'flex-start'
+            }}>
+              <div style={{ 
+                padding: '10px 14px', 
+                borderRadius: isMe ? '15px 15px 2px 15px' : '15px 15px 15px 2px',
+                background: isMe ? 'var(--neon-blue)' : 'rgba(255,255,255,0.1)',
+                color: isMe ? '#000' : '#fff',
+                fontSize: '0.9rem',
+                boxShadow: isMe ? '0 0 10px rgba(0,229,255,0.3)' : 'none'
+              }}>
+                {msg.type === 'image' ? (
+                  <img src={msg.image} alt="Upload" style={{ maxWidth: '100%', borderRadius: '8px', cursor: 'pointer' }} onClick={() => window.open(msg.image)} />
+                ) : (
+                  msg.text
+                )}
+              </div>
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                {msg.sender === 'admin' ? 'Expert' : 'Client'} • {new Date(msg.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            </div>
+          );
+        })}
+        <div ref={chatEndRef} />
+      </div>
+
+      <div className="chat-input" style={{ padding: '10px', background: 'rgba(255,255,255,0.05)', borderTop: '1px solid var(--glass-border)', display: 'flex', gap: '10px' }}>
+        <input 
+          type="file" 
+          accept="image/*" 
+          ref={fileInputRef} 
+          style={{ display: 'none' }} 
+          onChange={handleFileUpload}
+        />
+        <button 
+          onClick={() => fileInputRef.current.click()}
+          style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}
+          title="Joindre une photo"
+        >
+          📎
+        </button>
+        <input 
+          type="text" 
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+          placeholder="Écrivez votre message..."
+          style={{ flex: 1, background: 'rgba(0,0,0,0.2)', border: '1px solid var(--glass-border)', borderRadius: '20px', padding: '0 15px', color: '#fff', fontSize: '0.9rem' }}
+        />
+        <button 
+          onClick={() => sendMessage()}
+          disabled={isSending || (!newMessage.trim())}
+          style={{ 
+            background: 'var(--neon-blue)', color: '#000', border: 'none', borderRadius: '50%', 
+            width: '36px', height: '36px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem',
+            opacity: isSending || !newMessage.trim() ? 0.5 : 1
+          }}
+        >
+          {isSending ? '...' : '➤'}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function LeadRow({ lead, updateStatus, deleteLead }) {
   const [adminNotes, setAdminNotes] = useState(lead.admin_notes || '');
   const [isSaving, setIsSaving] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [messages, setMessages] = useState(lead.messages || '[]');
 
   const saveNotes = async () => {
     setIsSaving(true);
@@ -39,7 +210,7 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
               background: 'none', border: 'none', cursor: 'pointer', padding: 0 
             }}
           >
-            {isExpanded ? '▲ Cacher Notes' : '▼ Voir Notes'}
+            {isExpanded ? '▲ Cacher Chat' : '▼ Voir Chat/Notes'}
           </button>
         </td>
         <td style={{ padding: '1rem', verticalAlign: 'top', minWidth: '150px' }}>
@@ -102,36 +273,27 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
       {isExpanded && (
         <tr style={{ background: 'rgba(10,20,40,0.4)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
           <td colSpan="6" style={{ padding: '1.5rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '2rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--neon-blue)', marginBottom: '8px', fontWeight: 'bold' }}>📝 Vos Notes (Admin)</label>
+                <LeadChat lead={{...lead, messages}} isAdmin={true} onUpdate={(newM) => setMessages(JSON.stringify(newM))} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--neon-blue)', marginBottom: '8px', fontWeight: 'bold' }}>📝 Notes Internes (Admin uniquement)</label>
                 <textarea 
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
                   className="form-input"
-                  style={{ minHeight: '100px', fontSize: '0.85rem', background: 'rgba(0,0,0,0.4)' }}
-                  placeholder="Notes internes, détails techniques..."
+                  style={{ minHeight: '344px', fontSize: '0.85rem', background: 'rgba(0,0,0,0.4)' }}
+                  placeholder="Notes techniques, mémos privés..."
                 />
                 <button 
                   onClick={saveNotes}
                   disabled={isSaving}
                   className="neon-button"
-                  style={{ marginTop: '10px', padding: '6px 12px', fontSize: '0.75rem' }}
+                  style={{ marginTop: '10px', padding: '6px 12px', fontSize: '0.75rem', width: '100%' }}
                 >
-                  {isSaving ? 'Enregistrement...' : 'Enregistrer mes notes'}
+                  {isSaving ? 'Enregistrement...' : 'Enregistrer Notes Internes'}
                 </button>
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: '#ffc800', marginBottom: '8px', fontWeight: 'bold' }}>💬 Notes du Client</label>
-                <div style={{ 
-                  padding: '12px', background: 'rgba(0,0,0,0.4)', borderRadius: '8px', 
-                  minHeight: '100px', fontSize: '0.85rem', border: '1px solid rgba(255, 200, 0, 0.2)',
-                  color: lead.client_notes ? '#fff' : 'var(--text-secondary)',
-                  fontStyle: lead.client_notes ? 'normal' : 'italic',
-                  whiteSpace: 'pre-wrap'
-                }}>
-                  {lead.client_notes || "Aucune note du client pour le moment."}
-                </div>
               </div>
             </div>
           </td>

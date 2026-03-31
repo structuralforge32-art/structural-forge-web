@@ -16,7 +16,7 @@ export async function GET() {
 export async function PUT(req) {
   try {
     const body = await req.json();
-    const { id, status, admin_notes, client_notes } = body;
+    const { id, status, admin_notes, client_notes, message, clearMessages } = body;
     
     if (!id) {
       return NextResponse.json({ error: 'ID manquant' }, { status: 400 });
@@ -59,10 +59,28 @@ export async function PUT(req) {
       updateFields.push('admin_notes = ?');
       params.push(admin_notes);
     }
-
     if (client_notes !== undefined) {
       updateFields.push('client_notes = ?');
       params.push(client_notes);
+    }
+
+    // Gestion du Chat (messages)
+    let messages = [];
+    try {
+      if (lead.messages) messages = JSON.parse(lead.messages);
+    } catch(e) {}
+
+    if (clearMessages) {
+      messages = [];
+      updateFields.push('messages = ?');
+      params.push(JSON.stringify(messages));
+    } else if (message) {
+      messages.push({
+        ...message,
+        timestamp: new Date().toISOString()
+      });
+      updateFields.push('messages = ?');
+      params.push(JSON.stringify(messages));
     }
 
     if (updateFields.length > 0) {
@@ -70,7 +88,7 @@ export async function PUT(req) {
       await db.run(`UPDATE leads SET ${updateFields.join(', ')} WHERE id = ?`, params);
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, messages });
     
   } catch (error) {
     console.error('Erreur API Admin Update:', error);

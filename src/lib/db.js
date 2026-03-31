@@ -28,6 +28,7 @@ export async function openDB() {
         history TEXT DEFAULT '{}',
         admin_notes TEXT DEFAULT '',
         client_notes TEXT DEFAULT '',
+        messages TEXT DEFAULT '[]',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
       
@@ -38,7 +39,7 @@ export async function openDB() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- Migrations Postgres pour les notes (au cas où la table existe déjà sans ces colonnes)
+      -- Migrations Postgres (au cas où la table existe déjà)
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='admin_notes') THEN
@@ -46,6 +47,9 @@ export async function openDB() {
         END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='client_notes') THEN
           ALTER TABLE leads ADD COLUMN client_notes TEXT DEFAULT '';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='messages') THEN
+          ALTER TABLE leads ADD COLUMN messages TEXT DEFAULT '[]';
         END IF;
       END $$;
     `);
@@ -114,6 +118,7 @@ export async function openDB() {
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN history TEXT DEFAULT '{}'"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN admin_notes TEXT DEFAULT ''"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN client_notes TEXT DEFAULT ''"); } catch (e) {}
+    try { await localDb.exec("ALTER TABLE leads ADD COLUMN messages TEXT DEFAULT '[]'"); } catch (e) {}
   }
   return localDb;
 }

@@ -1,6 +1,5 @@
 'use client';
-
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { use } from 'react';
 
 const STEPS = [
@@ -14,6 +13,160 @@ const STEPS = [
   "Terminé"
 ];
 
+// Composant Chat Partagé
+function LeadChat({ lead, isAdmin, onUpdate }) {
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const chatEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (lead.messages) {
+      try {
+        setMessages(typeof lead.messages === 'string' ? JSON.parse(lead.messages) : lead.messages);
+      } catch (e) {
+        setMessages([]);
+      }
+    }
+  }, [lead.messages]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const sendMessage = async (imageContent = null) => {
+    if (!newMessage.trim() && !imageContent) return;
+    setIsSending(true);
+
+    const msgObj = {
+      sender: isAdmin ? 'admin' : 'client',
+      text: newMessage,
+      type: imageContent ? 'image' : 'text',
+      image: imageContent,
+    };
+
+    try {
+      const url = isAdmin ? '/api/admin/leads' : `/api/suivi/${lead.token}/notes`;
+      const res = await fetch(url, {
+        method: isAdmin ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          id: lead.id, 
+          message: msgObj 
+        })
+      });
+      const result = await res.json();
+      if (res.ok) {
+        setNewMessage('');
+        if (onUpdate) onUpdate(result.messages);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("L'image est trop lourde (max 2Mo)");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      sendMessage(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div className="chat-container" style={{ display: 'flex', flexDirection: 'column', height: '500px', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', border: '1px solid var(--glass-border)', overflow: 'hidden' }}>
+      <div className="chat-header" style={{ padding: '12px 15px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--neon-blue)' }}>🖋️ Espace d'Échange avec l'Expert</span>
+      </div>
+
+      <div className="chat-messages" style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {messages.length === 0 && (
+          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '40px' }}>
+            Aucun message. Posez vos questions ici !
+          </div>
+        )}
+        {messages.map((msg, i) => {
+          const isMe = (!isAdmin && msg.sender === 'client') || (isAdmin && msg.sender === 'admin');
+          return (
+            <div key={i} style={{ 
+              alignSelf: isMe ? 'flex-end' : 'flex-start',
+              maxWidth: '85%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: isMe ? 'flex-end' : 'flex-start'
+            }}>
+              <div style={{ 
+                padding: '12px 16px', 
+                borderRadius: isMe ? '18px 18px 2px 18px' : '18px 18px 18px 2px',
+                background: isMe ? '#ffc800' : 'rgba(255,255,255,0.1)',
+                color: isMe ? '#000' : '#fff',
+                fontSize: '0.95rem',
+                boxShadow: isMe ? '0 0 15px rgba(255,200,0,0.2)' : 'none'
+              }}>
+                {msg.type === 'image' ? (
+                  <img src={msg.image} alt="Upload" style={{ maxWidth: '100%', borderRadius: '10px', cursor: 'pointer' }} onClick={() => window.open(msg.image)} />
+                ) : (
+                  msg.text
+                )}
+              </div>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '5px' }}>
+                {msg.sender === 'admin' ? '👷 Expert Forge' : '👤 Vous'} • {new Date(msg.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            </div>
+          );
+        })}
+        <div ref={chatEndRef} />
+      </div>
+
+      <div className="chat-input" style={{ padding: '15px', background: 'rgba(255,255,255,0.05)', borderTop: '1px solid var(--glass-border)', display: 'flex', gap: '12px' }}>
+        <input 
+          type="file" 
+          accept="image/*" 
+          ref={fileInputRef} 
+          style={{ display: 'none' }} 
+          onChange={handleFileUpload}
+        />
+        <button 
+          onClick={() => fileInputRef.current.click()}
+          style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '42px', height: '42px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem' }}
+          title="Envoyer une photo"
+        >
+          📸
+        </button>
+        <input 
+          type="text" 
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+          placeholder="Écrivez vos précisions..."
+          style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid var(--glass-border)', borderRadius: '25px', padding: '0 20px', color: '#fff', fontSize: '0.95rem' }}
+        />
+        <button 
+          onClick={() => sendMessage()}
+          disabled={isSending || (!newMessage.trim())}
+          style={{ 
+            background: '#ffc800', color: '#000', border: 'none', borderRadius: '50%', 
+            width: '42px', height: '42px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.2rem',
+            opacity: isSending || !newMessage.trim() ? 0.5 : 1
+          }}
+        >
+          ➤
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function SuiviProjet({ params }) {
   const unwrappedParams = use(params);
   const token = unwrappedParams.token;
@@ -21,8 +174,6 @@ export default function SuiviProjet({ params }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
-  const [clientNotes, setClientNotes] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -32,7 +183,6 @@ export default function SuiviProjet({ params }) {
         
         if (res.ok) {
           setData(result.lead);
-          setClientNotes(result.lead.client_notes || '');
         } else {
           setError(result.error);
         }
@@ -72,24 +222,6 @@ export default function SuiviProjet({ params }) {
       historyDict = JSON.parse(data.history);
     } catch(e) {}
   }
-
-  const saveClientNotes = async () => {
-    setIsSaving(true);
-    try {
-      const res = await fetch(`/api/suivi/${token}/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ client_notes: clientNotes })
-      });
-      if (res.ok) {
-        alert('Vos précisions ont été enregistrées !');
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSaving(false);
-    }
-  };
   
   return (
     <main className="section-container" style={{ minHeight: '100vh', paddingTop: '8rem', maxWidth: '900px', margin: '0 auto' }}>
@@ -119,7 +251,6 @@ export default function SuiviProjet({ params }) {
             const isCompleted = currentStepIndex !== -1 && index < currentStepIndex;
             const isActive = index === currentStepIndex;
             const isPending = currentStepIndex !== -1 && index > currentStepIndex;
-            // Si on ne trouve pas le statut, on grise tout.
             const isUnknownState = currentStepIndex === -1;
 
             let color = 'var(--text-secondary)';
@@ -138,8 +269,6 @@ export default function SuiviProjet({ params }) {
               dotBorder = 'var(--neon-blue)';
             }
 
-            // On ne montre pas le step "Terminé" comme un point à part si pas nécessaire, 
-            // mais ici on a la liste donc on l'affiche
             return (
               <div key={step} style={{
                 display: 'flex',
@@ -189,47 +318,24 @@ export default function SuiviProjet({ params }) {
             );
           })}
         </div>
-
       </div>
 
-      {/* Espace d'échange / Notes */}
-      <div className="glass-panel mt-8">
-        <h2 className="mb-4" style={{fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px'}}>
-          <span>🖋️</span> Espace d'Échange
-        </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--neon-blue)', marginBottom: '10px', fontWeight: 'bold' }}>👤 Notes de l'Expert Structural Forge</label>
-            <div style={{ 
-              padding: '1.2rem', background: 'rgba(0,229,255,0.05)', borderRadius: '8px', 
-              border: '1px solid var(--glass-border)', minHeight: '120px', color: '#fff',
-              fontSize: '0.9rem', whiteSpace: 'pre-wrap', lineHeight: '1.5'
-            }}>
-              {data.admin_notes || "L'expert n'a pas encore laissé de notes particulières pour cette étape."}
-            </div>
-          </div>
-          
-          <div>
-            <label style={{ display: 'block', fontSize: '0.9rem', color: '#ffc800', marginBottom: '10px', fontWeight: 'bold' }}>💬 Vos Précisions / Questions</label>
-            <textarea 
-              value={clientNotes}
-              onChange={(e) => setClientNotes(e.target.value)}
-              placeholder="Besoin d'une modification ? Une question ?"
-              className="form-input"
-              style={{ minHeight: '120px', background: 'rgba(255, 200, 0, 0.03)', border: '1px solid rgba(255, 200, 0, 0.2)', fontSize: '0.9rem' }}
-            />
-            <button 
-              onClick={saveClientNotes}
-              disabled={isSaving}
-              className="neon-button"
-              style={{ 
-                marginTop: '10px', width: '100%', padding: '8px', 
-                background: 'rgba(255, 200, 0, 0.1)', color: '#ffc800', 
-                border: '1px solid rgba(255, 200, 0, 0.4)', fontSize: '0.85rem'
-              }}
-            >
-              {isSaving ? 'Enregistrement...' : '✉️ Enregistrer mes précisions'}
-            </button>
+      {/* Chat Collaboratif avec Expert */}
+      <div className="glass-panel" style={{ marginTop: '2rem' }}>
+        <LeadChat 
+          lead={data} 
+          isAdmin={false} 
+          onUpdate={(newMessages) => setData(prev => ({...prev, messages: newMessages}))} 
+        />
+        
+        <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid var(--glass-border)' }}>
+          <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--neon-blue)', marginBottom: '10px', fontWeight: 'bold' }}>👤 Notes Finales de l'Expert</label>
+          <div style={{ 
+            padding: '1.2rem', background: 'rgba(0,229,255,0.05)', borderRadius: '8px', 
+            border: '1px solid var(--glass-border)', color: '#fff',
+            fontSize: '0.9rem', whiteSpace: 'pre-wrap', lineHeight: '1.5'
+          }}>
+            {data.admin_notes || "L'expert centralisera ici vos décisions finales."}
           </div>
         </div>
       </div>

@@ -19,10 +19,27 @@ export async function POST(req, { params }) {
       return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 });
     }
 
-    // Mettre à jour uniquement les notes du client
-    await db.run('UPDATE leads SET client_notes = ? WHERE id = ?', [client_notes || '', lead.id]);
+    // Mettre à jour les notes ET ajouter au flux de messages (Chat)
+    const currentLead = await db.get('SELECT messages, client_notes FROM leads WHERE id = ?', [lead.id]);
+    let messages = [];
+    try {
+      if (currentLead.messages) messages = JSON.parse(currentLead.messages);
+    } catch(e) {}
 
-    return NextResponse.json({ success: true });
+    // Si on reçoit un nouveau message structuré
+    if (body.message) {
+      messages.push({
+        ...body.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    await db.run(
+      'UPDATE leads SET client_notes = ?, messages = ? WHERE id = ?', 
+      [client_notes !== undefined ? client_notes : (currentLead.client_notes || ''), JSON.stringify(messages), lead.id]
+    );
+
+    return NextResponse.json({ success: true, messages });
     
   } catch (error) {
     console.error('Erreur API Notes Client:', error);
