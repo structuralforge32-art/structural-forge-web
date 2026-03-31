@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { openDB } from '@/lib/db';
-import { sendClientUpdate } from '@/lib/mail';
+import { sendClientUpdate, sendNewMessageNotification } from '@/lib/mail';
 
 export async function GET() {
   try {
     const db = await openDB();
-    const leads = await db.all('SELECT * FROM leads ORDER BY created_at DESC');
+    const leads = await db.all('SELECT * FROM leads ORDER BY unread_admin DESC, created_at DESC');
     return NextResponse.json(leads);
   } catch (error) {
     console.error('Erreur API Admin:', error);
@@ -16,7 +16,7 @@ export async function GET() {
 export async function PUT(req) {
   try {
     const body = await req.json();
-    const { id, status, admin_notes, client_notes, message, clearMessages } = body;
+    const { id, status, admin_notes, client_notes, message, clearMessages, markAsRead } = body;
     
     if (!id) {
       return NextResponse.json({ error: 'ID manquant' }, { status: 400 });
@@ -33,6 +33,11 @@ export async function PUT(req) {
     // Prepare update fields
     let updateFields = [];
     let params = [];
+
+    // Marquer comme lu
+    if (markAsRead) {
+      updateFields.push('unread_admin = 0');
+    }
 
     if (status !== undefined) {
       // Update history if status changed
@@ -81,6 +86,13 @@ export async function PUT(req) {
       });
       updateFields.push('messages = ?');
       params.push(JSON.stringify(messages));
+
+      // Notification Email au client
+      try {
+        await sendNewMessageNotification(lead, 'admin');
+      } catch (err) {
+        console.error("Erreur notification message expert:", err);
+      }
     }
 
     if (updateFields.length > 0) {

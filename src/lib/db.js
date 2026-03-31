@@ -29,6 +29,7 @@ export async function openDB() {
         admin_notes TEXT DEFAULT '',
         client_notes TEXT DEFAULT '',
         messages TEXT DEFAULT '[]',
+        unread_admin INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
       
@@ -50,6 +51,9 @@ export async function openDB() {
         END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='messages') THEN
           ALTER TABLE leads ADD COLUMN messages TEXT DEFAULT '[]';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='unread_admin') THEN
+          ALTER TABLE leads ADD COLUMN unread_admin INTEGER DEFAULT 0;
         END IF;
       END $$;
     `);
@@ -119,6 +123,7 @@ export async function openDB() {
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN admin_notes TEXT DEFAULT ''"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN client_notes TEXT DEFAULT ''"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN messages TEXT DEFAULT '[]'"); } catch (e) {}
+    try { await localDb.exec("ALTER TABLE leads ADD COLUMN unread_admin INTEGER DEFAULT 0"); } catch (e) {}
   }
   return localDb;
 }

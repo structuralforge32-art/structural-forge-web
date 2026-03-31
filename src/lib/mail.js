@@ -54,3 +54,39 @@ L'équipe Structural Forge.
   
   return transporter.sendMail(mailOptions);
 }
+export async function sendNewMessageNotification(lead, senderType) {
+  const isFromExpert = senderType === 'admin';
+  const mailOptions = {
+    from: 'structural.forge32@gmail.com',
+    to: isFromExpert ? lead.email : 'structural.forge32@gmail.com',
+    subject: isFromExpert 
+      ? `👨‍🔧 Nouveau message de l'Expert - Projet ${lead.type}`
+      : `💬 Nouveau message de ${lead.name} - Projet ${lead.type}`,
+    text: isFromExpert
+      ? `
+Bonjour ${lead.name},
+
+L'expert Structural Forge a laissé un nouveau message ou une nouvelle photo sur votre portail de suivi concernant le projet "${lead.type}".
+
+Consultez le message et répondez ici :
+${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/suivi/${lead.token}
+
+Cordialement,
+L'équipe Structural Forge.
+      `
+      : `
+Bonjour,
+
+Le client ${lead.name} a envoyé un nouveau message concernant son projet "${lead.type}".
+
+Connectez-vous au dashboard admin pour lui répondre :
+${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/admin
+
+Détails du lead :
+Nom: ${lead.name}
+Projet: ${lead.type}
+      `
+  };
+  
+  return transporter.sendMail(mailOptions);
+}

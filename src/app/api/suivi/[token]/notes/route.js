@@ -1,5 +1,4 @@
-import { NextResponse } from 'next/server';
-import { openDB } from '@/lib/db';
+import { sendNewMessageNotification } from '@/lib/mail';
 
 export async function POST(req, { params }) {
   try {
@@ -13,8 +12,8 @@ export async function POST(req, { params }) {
 
     const db = await openDB();
     
-    // Vérifier si le projet existe via le token
-    const lead = await db.get('SELECT id FROM leads WHERE token = ?', [token]);
+    // Rechercher le lead via le token
+    const lead = await db.get('SELECT * FROM leads WHERE token = ?', [token]);
     if (!lead) {
       return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 });
     }
@@ -32,12 +31,24 @@ export async function POST(req, { params }) {
         ...body.message,
         timestamp: new Date().toISOString()
       });
-    }
+      
+      // Notification Email à l'admin + Point rouge
+      await db.run(
+        'UPDATE leads SET client_notes = ?, messages = ?, unread_admin = 1 WHERE id = ?', 
+        [client_notes !== undefined ? client_notes : (currentLead.client_notes || ''), JSON.stringify(messages), lead.id]
+      );
 
-    await db.run(
-      'UPDATE leads SET client_notes = ?, messages = ? WHERE id = ?', 
-      [client_notes !== undefined ? client_notes : (currentLead.client_notes || ''), JSON.stringify(messages), lead.id]
-    );
+      try {
+        await sendNewMessageNotification(lead, 'client');
+      } catch (err) {
+        console.error("Erreur notification message client:", err);
+      }
+    } else {
+      await db.run(
+        'UPDATE leads SET client_notes = ?, messages = ? WHERE id = ?', 
+        [client_notes !== undefined ? client_notes : (currentLead.client_notes || ''), JSON.stringify(messages), lead.id]
+      );
+    }
 
     return NextResponse.json({ success: true, messages });
     
