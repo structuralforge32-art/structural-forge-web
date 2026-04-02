@@ -39,7 +39,7 @@ const compressImage = (base64Str, maxWidth = 1000, maxHeight = 1000) => {
   });
 };
 
-const STEPS = [
+const DEFAULT_STEPS = [
   "Création du projet",
   "Validation de faisabilité",
   "Devis",
@@ -47,6 +47,14 @@ const STEPS = [
   "Prototypage",
   "Impression finale",
   "Facturation",
+  "Terminé"
+];
+
+const REpair_STEPS = [
+  "Création du dossier",
+  "Validation de faisabilité",
+  "Devis",
+  "Réparation en cours",
   "Terminé"
 ];
 
@@ -510,6 +518,7 @@ export default function SuiviProjet({ params }) {
     );
   }
 
+  const STEPS = data.type === "Réparation objet de A à Z" ? REpair_STEPS : DEFAULT_STEPS;
   const currentStepIndex = STEPS.indexOf(data.status);
 
   let historyDict = {};
@@ -665,125 +674,127 @@ export default function SuiviProjet({ params }) {
         </div>
       </div>
 
-      {/* Visualisation 3D (Toujours visible) */}
-      <div className="glass-panel" style={{ marginTop: '2rem', padding: '2rem' }}>
-        <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: 'var(--neon-blue)', borderBottom: '1px solid rgba(0,229,255,0.1)', paddingBottom: '10px' }}>
-          📦 Prototype 3D Interactif
-        </h2>
+      {/* Visualisation 3D (Toujours visible SAUF pour Réparation) */}
+      {data.type !== "Réparation objet de A à Z" && (
+        <div className="glass-panel" style={{ marginTop: '2rem', padding: '2rem' }}>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: 'var(--neon-blue)', borderBottom: '1px solid rgba(0,229,255,0.1)', paddingBottom: '10px' }}>
+            📦 Prototype 3D Interactif
+          </h2>
 
-        {!data.stl_data ? (
-          <div style={{
-            height: '300px',
-            background: 'rgba(255,255,255,0.03)',
-            borderRadius: '12px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: '1px dashed rgba(0,229,255,0.2)',
-            color: 'var(--text-secondary)',
-            textAlign: 'center',
-            padding: '20px'
-          }}>
-            <span style={{ fontSize: '2rem', marginBottom: '10px' }}>⌛</span>
-            <p style={{ fontSize: '0.9rem', maxWidth: '400px' }}>
-              Le modèle 3D est en cours de préparation par nos techniciens.<br />
-              <strong>On attend que le fichier soit prêt pour le charger dans le projet.</strong>
-            </p>
-          </div>
-        ) : (
-          <>
-            <STLViz stlData={data.stl_data} />
-            <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-              Le prototype numérique est prêt. Vous pouvez manipuler la pièce pour l'observer sous tous les angles.
-            </p>
+          {!data.stl_data ? (
+            <div style={{
+              height: '300px',
+              background: 'rgba(255,255,255,0.03)',
+              borderRadius: '12px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '1px dashed rgba(0,229,255,0.2)',
+              color: 'var(--text-secondary)',
+              textAlign: 'center',
+              padding: '20px'
+            }}>
+              <span style={{ fontSize: '2rem', marginBottom: '10px' }}>⌛</span>
+              <p style={{ fontSize: '0.9rem', maxWidth: '400px' }}>
+                Le modèle 3D est en cours de préparation par nos techniciens.<br />
+                <strong>On attend que le fichier soit prêt pour le charger dans le projet.</strong>
+              </p>
+            </div>
+          ) : (
+            <>
+              <STLViz stlData={data.stl_data} />
+              <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                Le prototype numérique est prêt. Vous pouvez manipuler la pièce pour l'observer sous tous les angles.
+              </p>
 
-            {/* Actions de validation STL */}
-            <div style={{ marginTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.5rem' }}>
-              {data.stl_status === 'pending' || !data.stl_status ? (
-                <div style={{ textAlign: 'center' }}>
-                  <p style={{ color: '#fff', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                    Le prototype vous convient-il ?
-                  </p>
-                  <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <button
-                      onClick={() => handleStlValidate('validated')}
-                      disabled={isStlValidating}
-                      style={{
-                        padding: '12px 25px', background: '#00ff66', color: '#000',
-                        border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer',
-                        fontSize: '0.9rem', boxShadow: '0 0 15px rgba(0,255,100,0.3)'
-                      }}
-                    >
-                      {isStlValidating ? 'Validation...' : '✅ Valider le Prototype'}
-                    </button>
-                    <button
-                      onClick={() => setShowStlReject(!showStlReject)}
-                      style={{
-                        padding: '12px 25px', background: 'rgba(255,50,50,0.1)', color: '#ff4444',
-                        border: '1px solid #ff4444', borderRadius: '4px', cursor: 'pointer',
-                        fontSize: '0.9rem'
-                      }}
-                    >
-                      ❌ Demander des modifications
-                    </button>
-                  </div>
-
-                  {showStlReject && (
-                    <div style={{ marginTop: '20px', maxWidth: '500px', margin: '20px auto 0' }}>
-                      <textarea
-                        value={stlComment}
-                        onChange={(e) => setStlComment(e.target.value)}
-                        placeholder="Quelles modifications souhaitez-vous apporter ?"
-                        style={{
-                          width: '100%', background: 'rgba(0,0,0,0.4)', color: '#fff',
-                          border: '1px solid var(--glass-border)', borderRadius: '8px',
-                          padding: '12px', minHeight: '100px', fontSize: '0.9rem'
-                        }}
-                      />
+              {/* Actions de validation STL */}
+              <div style={{ marginTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.5rem' }}>
+                {data.stl_status === 'pending' || !data.stl_status ? (
+                  <div style={{ textAlign: 'center' }}>
+                    <p style={{ color: '#fff', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                      Le prototype vous convient-il ?
+                    </p>
+                    <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
                       <button
-                        onClick={() => handleStlValidate('rejected')}
-                        disabled={isStlValidating || !stlComment.trim()}
+                        onClick={() => handleStlValidate('validated')}
+                        disabled={isStlValidating}
                         style={{
-                          width: '100%', marginTop: '10px', padding: '10px',
-                          background: '#fff', color: '#000', border: 'none',
-                          borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer'
+                          padding: '12px 25px', background: '#00ff66', color: '#000',
+                          border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer',
+                          fontSize: '0.9rem', boxShadow: '0 0 15px rgba(0,255,100,0.3)'
                         }}
                       >
-                        Envoyer ma demande
+                        {isStlValidating ? 'Validation...' : '✅ Valider le Prototype'}
+                      </button>
+                      <button
+                        onClick={() => setShowStlReject(!showStlReject)}
+                        style={{
+                          padding: '12px 25px', background: 'rgba(255,50,50,0.1)', color: '#ff4444',
+                          border: '1px solid #ff4444', borderRadius: '4px', cursor: 'pointer',
+                          fontSize: '0.9rem'
+                        }}
+                      >
+                        ❌ Demander des modifications
                       </button>
                     </div>
-                  )}
-                </div>
-              ) : data.stl_status === 'validated' ? (
-                <div style={{
-                  textAlign: 'center', background: 'rgba(0,255,100,0.1)',
-                  padding: '15px', borderRadius: '8px', border: '1px solid #00ff66'
-                }}>
-                  <p style={{ color: '#00ff66', fontWeight: 'bold', margin: 0 }}>
-                    ✅ Prototype validé par vos soins. Production imminente.
-                  </p>
-                </div>
-              ) : (
-                <div style={{
-                  textAlign: 'center', background: 'rgba(255,150,0,0.1)',
-                  padding: '15px', borderRadius: '8px', border: '1px solid #ff9600'
-                }}>
-                  <p style={{ color: '#ff9600', fontWeight: 'bold', margin: 0 }}>
-                    ⌛ Modifications demandées. Nos techniciens étudient votre message.
-                  </p>
-                  <button 
-                    onClick={() => handleStlValidate('validated')}
-                    style={{ background: 'none', border: 'none', color: '#fff', textDecoration: 'underline', fontSize: '0.8rem', marginTop: '10px', cursor: 'pointer' }}
-                  >
-                    Finalement, je valide le modèle actuel
-                  </button>
-                </div>
-              )}
-            </div>
-          </>
-        )}
-      </div>
+
+                    {showStlReject && (
+                      <div style={{ marginTop: '20px', maxWidth: '500px', margin: '20px auto 0' }}>
+                        <textarea
+                          value={stlComment}
+                          onChange={(e) => setStlComment(e.target.value)}
+                          placeholder="Quelles modifications souhaitez-vous apporter ?"
+                          style={{
+                            width: '100%', background: 'rgba(0,0,0,0.4)', color: '#fff',
+                            border: '1px solid var(--glass-border)', borderRadius: '8px',
+                            padding: '12px', minHeight: '100px', fontSize: '0.9rem'
+                          }}
+                        />
+                        <button
+                          onClick={() => handleStlValidate('rejected')}
+                          disabled={isStlValidating || !stlComment.trim()}
+                          style={{
+                            width: '100%', marginTop: '10px', padding: '10px',
+                            background: '#fff', color: '#000', border: 'none',
+                            borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer'
+                          }}
+                        >
+                          Envoyer ma demande
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : data.stl_status === 'validated' ? (
+                  <div style={{
+                    textAlign: 'center', background: 'rgba(0,255,100,0.1)',
+                    padding: '15px', borderRadius: '8px', border: '1px solid #00ff66'
+                  }}>
+                    <p style={{ color: '#00ff66', fontWeight: 'bold', margin: 0 }}>
+                      ✅ Prototype validé par vos soins. Production imminente.
+                    </p>
+                  </div>
+                ) : (
+                  <div style={{
+                    textAlign: 'center', background: 'rgba(255,150,0,0.1)',
+                    padding: '15px', borderRadius: '8px', border: '1px solid #ff9600'
+                  }}>
+                    <p style={{ color: '#ff9600', fontWeight: 'bold', margin: 0 }}>
+                      ⌛ Modifications demandées. Nos techniciens étudient votre message.
+                    </p>
+                    <button 
+                      onClick={() => handleStlValidate('validated')}
+                      style={{ background: 'none', border: 'none', color: '#fff', textDecoration: 'underline', fontSize: '0.8rem', marginTop: '10px', cursor: 'pointer' }}
+                    >
+                      Finalement, je valide le modèle actuel
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Chat Collaboratif avec Expert */}
       <div className="glass-panel" style={{ marginTop: '2rem' }}>
@@ -807,3 +818,4 @@ export default function SuiviProjet({ params }) {
     </main>
   );
 }
+

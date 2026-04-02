@@ -106,6 +106,14 @@ export default function Home() {
           </div>
 
           <div className="glass-panel service-card cursor-hover" style={{flex: 1}}>
+            <div className="service-icon" style={{fontSize: '2.5rem', marginBottom: '1rem'}}>🛠️</div>
+            <h3 className="mb-4" style={{fontSize: '1.2rem', fontWeight: '600'}}>Réparation objet de A à Z</h3>
+            <p style={{color: 'var(--text-secondary)', fontSize: '0.95rem'}}>
+              Restauration complète de vos objets du quotidien ou industriels. Nous réparons la structure de vos pièces endommagées de A à Z pour leur redonner vie.
+            </p>
+          </div>
+
+          <div className="glass-panel service-card cursor-hover" style={{flex: 1}}>
             <div className="service-icon" style={{fontSize: '2.5rem', marginBottom: '1rem'}}>⚙️</div>
             <h3 className="mb-4" style={{fontSize: '1.2rem', fontWeight: '600'}}>Autres Projets</h3>
             <p style={{color: 'var(--text-secondary)', fontSize: '0.95rem'}}>

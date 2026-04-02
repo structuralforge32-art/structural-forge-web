@@ -87,6 +87,7 @@ export default function ContactForm() {
         <select required name="type" value={formData.type} onChange={handleChange} className="form-input" style={{appearance: 'none', cursor: 'pointer'}}>
           <option value="Pièces pour l'automobile">Pièces pour l'automobile</option>
           <option value="Outillages / consommable">Outillages / consommable</option>
+          <option value="Réparation objet de A à Z">Réparation objet de A à Z</option>
           <option value="Autre">Autre</option>
         </select>
       </div>

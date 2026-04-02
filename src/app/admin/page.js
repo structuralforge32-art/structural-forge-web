@@ -344,6 +344,25 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
   );
 }
 
+const DEFAULT_STEPS = [
+  "Création du projet",
+  "Validation de faisabilité",
+  "Devis",
+  "Modélisation 3D",
+  "Prototypage",
+  "Impression finale",
+  "Facturation",
+  "Terminé"
+];
+
+const REpair_STEPS = [
+  "Création du dossier",
+  "Validation de faisabilité",
+  "Devis",
+  "Réparation en cours",
+  "Terminé"
+];
+
 function LeadRow({ lead, updateStatus, deleteLead }) {
   const [adminNotes, setAdminNotes] = useState(lead.admin_notes || '');
   const [internalNotes, setInternalNotes] = useState(lead.internal_notes || '');
@@ -460,14 +479,9 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
             className="form-input"
             style={{ padding: '8px', fontSize: '0.85rem', background: '#0a0f1e' }}
           >
-            <option value="Création du projet">Création du projet</option>
-            <option value="Validation de faisabilité">Validation de faisabilité</option>
-            <option value="Devis">Devis</option>
-            <option value="Modélisation 3D">Modélisation 3D</option>
-            <option value="Prototypage">Prototypage</option>
-            <option value="Impression finale">Impression finale</option>
-            <option value="Facturation">Facturation</option>
-            <option value="Terminé">Terminé</option>
+            {(lead.type === "Réparation objet de A à Z" ? REpair_STEPS : DEFAULT_STEPS).map(step => (
+              <option key={step} value={step}>{step}</option>
+            ))}
           </select>
 
           <button
