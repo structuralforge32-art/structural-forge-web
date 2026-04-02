@@ -38,6 +38,7 @@ export async function openDB() {
         quote_ip TEXT,
         quote_signature TEXT,
         stl_data TEXT,
+        stl_status TEXT DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
       
@@ -81,8 +82,8 @@ export async function openDB() {
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='quote_amount_validated') THEN
           ALTER TABLE leads ADD COLUMN quote_amount_validated REAL DEFAULT 0;
         END IF;
-        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='stl_data') THEN
-          ALTER TABLE leads ADD COLUMN stl_data TEXT;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='stl_status') THEN
+          ALTER TABLE leads ADD COLUMN stl_status TEXT DEFAULT 'pending';
         END IF;
       END $$;
     `);
@@ -143,6 +144,7 @@ export async function openDB() {
         quote_ip TEXT,
         quote_signature TEXT,
         stl_data TEXT,
+        stl_status TEXT DEFAULT 'pending',
         client_notes TEXT DEFAULT '',
         messages TEXT DEFAULT '[]',
         unread_admin INTEGER DEFAULT 0,
@@ -171,6 +173,7 @@ export async function openDB() {
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN unread_admin INTEGER DEFAULT 0"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN quote_amount_validated REAL DEFAULT 0"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN stl_data TEXT"); } catch (e) {}
+    try { await localDb.exec("ALTER TABLE leads ADD COLUMN stl_status TEXT DEFAULT 'pending'"); } catch (e) {}
   }
   return localDb;
 }

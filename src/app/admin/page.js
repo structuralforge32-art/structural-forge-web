@@ -64,16 +64,16 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
       const url = isAdmin ? `/api/admin/leads` : `/api/suivi/${lead.token}`;
       const res = await fetch(url);
       const result = await res.json();
-      
+
       if (res.ok) {
-        const remoteMessagesStr = isAdmin 
-          ? result.find(l => l.id === lead.id)?.messages 
+        const remoteMessagesStr = isAdmin
+          ? result.find(l => l.id === lead.id)?.messages
           : result.lead?.messages;
-        
+
         let remoteMessages = [];
         try {
           remoteMessages = typeof remoteMessagesStr === 'string' ? JSON.parse(remoteMessagesStr) : remoteMessagesStr;
-        } catch(e) {}
+        } catch (e) { }
 
         if (Array.isArray(remoteMessages) && JSON.stringify(remoteMessages) !== JSON.stringify(messages)) {
           setMessages(remoteMessages);
@@ -122,7 +122,7 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
 
     let finalFile = imageContent;
     let fileType = imageContent && imageContent.startsWith('data:application/pdf') ? 'pdf' : 'image';
-    
+
     if (imageContent && fileType === 'image') {
       finalFile = await compressImage(imageContent);
     } else if (imageContent && fileType === 'pdf') {
@@ -145,9 +145,9 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
 
     try {
       const url = isAdmin ? '/api/admin/leads' : `/api/suivi/${lead.token}/notes`;
-      const bodyPayload = JSON.stringify({ 
-        id: lead.id, 
-        message: msgObj 
+      const bodyPayload = JSON.stringify({
+        id: lead.id,
+        message: msgObj
       });
 
       console.log('--- ENVOI MESSAGE DEBUG ---');
@@ -182,7 +182,7 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     // Check if PDF or Image
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -210,10 +210,10 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
   const chatHeight = isExpanded ? '92vh' : '550px';
 
   return (
-    <div className="chat-container" style={{ 
-      display: 'flex', flexDirection: 'column', height: chatHeight, 
-      background: 'rgba(0,0,0,0.6)', borderRadius: '12px', 
-      border: '1px solid var(--glass-border)', overflow: 'hidden', 
+    <div className="chat-container" style={{
+      display: 'flex', flexDirection: 'column', height: chatHeight,
+      background: 'rgba(0,0,0,0.6)', borderRadius: '12px',
+      border: '1px solid var(--glass-border)', overflow: 'hidden',
       transition: 'all 0.4s ease',
       boxShadow: isExpanded ? '0 0 100px rgba(0,0,0,0.8)' : 'none',
       position: isExpanded ? 'fixed' : 'relative',
@@ -226,8 +226,8 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
       <div className="chat-header" style={{ padding: '12px 15px', background: 'rgba(255,255,255,0.08)', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--neon-blue)' }}>🤝 Échanges Projet</span>
-          <button 
-            onClick={() => setIsExpanded(!isExpanded)} 
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
             style={{ background: 'rgba(0,229,255,0.1)', border: '1px solid var(--neon-blue)', color: 'var(--neon-blue)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer' }}
           >
             {isExpanded ? '⤫ Réduire' : '⤢ Agrandir'}
@@ -247,15 +247,15 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
         {messages.map((msg, i) => {
           const isMe = (isAdmin && msg.sender === 'admin') || (!isAdmin && msg.sender === 'client');
           return (
-            <div key={i} style={{ 
+            <div key={i} style={{
               alignSelf: isMe ? 'flex-end' : 'flex-start',
               maxWidth: isExpanded ? '70%' : '90%',
               display: 'flex',
               flexDirection: 'column',
               alignItems: isMe ? 'flex-end' : 'flex-start'
             }}>
-              <div style={{ 
-                padding: '12px 16px', 
+              <div style={{
+                padding: '12px 16px',
                 borderRadius: isMe ? '18px 18px 2px 18px' : '18px 18px 18px 2px',
                 background: isMe ? 'var(--neon-blue)' : 'rgba(255,255,255,0.12)',
                 color: isMe ? '#000' : '#fff',
@@ -266,8 +266,8 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
                   <img src={msg.image} alt="Upload" style={{ maxWidth: '100%', borderRadius: '10px', cursor: 'pointer', display: 'block' }} onClick={() => openBase64File(msg.image)} />
                 ) : msg.type === 'pdf' ? (
                   <div onClick={() => openBase64File(msg.image)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{fontSize: '1.5rem'}}>📄</span>
-                    <div style={{fontSize: '0.8rem', textDecoration: 'underline'}}>Voir le document PDF</div>
+                    <span style={{ fontSize: '1.5rem' }}>📄</span>
+                    <div style={{ fontSize: '0.8rem', textDecoration: 'underline' }}>Voir le document PDF</div>
                   </div>
                 ) : (
                   msg.text
@@ -282,56 +282,56 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
         <div ref={chatEndRef} />
       </div>
 
-      <div className="chat-input" style={{ 
-        padding: '15px', 
-        background: 'rgba(255,255,255,0.08)', 
-        borderTop: '1px solid var(--glass-border)', 
-        display: 'flex', 
+      <div className="chat-input" style={{
+        padding: '15px',
+        background: 'rgba(255,255,255,0.08)',
+        borderTop: '1px solid var(--glass-border)',
+        display: 'flex',
         gap: '10px',
         alignItems: 'center'
       }}>
-        <input 
-          type="file" 
-          accept="image/*,application/pdf" 
-          ref={fileInputRef} 
-          style={{ display: 'none' }} 
+        <input
+          type="file"
+          accept="image/*,application/pdf"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
           onChange={handleFileUpload}
         />
-        <button 
+        <button
           onClick={() => fileInputRef.current.click()}
-          style={{ 
-            background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', 
-            width: '42px', height: '42px', cursor: 'pointer', display: 'flex', 
+          style={{
+            background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%',
+            width: '42px', height: '42px', cursor: 'pointer', display: 'flex',
             alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem',
-            flexShrink: 0 
+            flexShrink: 0
           }}
           title="Ajouter une photo ou un Devis PDF"
         >
           📎
         </button>
-        <input 
-          type="text" 
+        <input
+          type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
           placeholder="Message..."
-          style={{ 
-            flex: 1, 
+          style={{
+            flex: 1,
             minWidth: '0',
-            background: 'rgba(0,0,0,0.3)', 
-            border: '1px solid var(--glass-border)', 
-            borderRadius: '25px', 
+            background: 'rgba(0,0,0,0.3)',
+            border: '1px solid var(--glass-border)',
+            borderRadius: '25px',
             height: '42px',
-            padding: '0 20px', 
-            color: '#fff', 
-            fontSize: '0.95rem' 
+            padding: '0 20px',
+            color: '#fff',
+            fontSize: '0.95rem'
           }}
         />
-        <button 
+        <button
           onClick={() => sendMessage()}
           disabled={isSending || (!newMessage.trim())}
-          style={{ 
-            background: 'var(--neon-blue)', color: '#000', border: 'none', borderRadius: '50%', 
+          style={{
+            background: 'var(--neon-blue)', color: '#000', border: 'none', borderRadius: '50%',
             width: '42px', height: '42px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.2rem',
             flexShrink: 0,
             opacity: isSending || !newMessage.trim() ? 0.5 : 1
@@ -373,8 +373,8 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
       const res = await fetch('/api/admin/leads', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          id: lead.id, 
+        body: JSON.stringify({
+          id: lead.id,
           admin_notes: adminNotes,
           internal_notes: internalNotes,
           quote_amount: quoteAmount,
@@ -382,10 +382,14 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
         })
       });
       if (res.ok) {
-        alert('Informations sauvegardées !');
+        alert('Informations sauvegardées ! ✨');
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        alert(`❌ Erreur lors de la sauvegarde : ${res.status} ${res.statusText}\n${errData.error || ''}`);
       }
     } catch (err) {
       console.error(err);
+      alert(`💥 Erreur réseau : ${err.message}`);
     } finally {
       setIsSaving(false);
     }
@@ -404,53 +408,53 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
               <span style={{ width: '8px', height: '8px', background: '#ff4444', borderRadius: '50%', boxShadow: '0 0 8px #ff4444' }} title="Nouveau message"></span>
             )}
           </div>
-          <button 
+          <button
             onClick={() => setIsExpanded(!isExpanded)}
-            style={{ 
-              display: 'block', marginTop: '5px', fontSize: '0.7rem', color: 'var(--neon-blue)', 
-              background: 'none', border: 'none', cursor: 'pointer', padding: 0 
+            style={{
+              display: 'block', marginTop: '5px', fontSize: '0.7rem', color: 'var(--neon-blue)',
+              background: 'none', border: 'none', cursor: 'pointer', padding: 0
             }}
           >
             {isExpanded ? '▲ Cacher Gestion' : '▼ Gérer Projet'}
           </button>
         </td>
         <td style={{ padding: '1rem', verticalAlign: 'top', minWidth: '150px' }}>
-          <a href={`mailto:${lead.email}`} style={{ color: 'var(--neon-blue)', textDecoration: 'none' }}>{lead.email}</a><br/>
-          <small style={{color: 'var(--text-secondary)'}}>{lead.phone}</small>
+          <a href={`mailto:${lead.email}`} style={{ color: 'var(--neon-blue)', textDecoration: 'none' }}>{lead.email}</a><br />
+          <small style={{ color: 'var(--text-secondary)' }}>{lead.phone}</small>
         </td>
         <td style={{ padding: '1rem', maxWidth: '300px', verticalAlign: 'top' }}>
-          <strong style={{display: 'block', marginBottom: '0.5rem', color: '#fff'}}>{lead.type}</strong>
+          <strong style={{ display: 'block', marginBottom: '0.5rem', color: '#fff' }}>{lead.type}</strong>
           <div style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
             {lead.message}
           </div>
         </td>
         <td style={{ padding: '1rem', verticalAlign: 'top' }}>
-          <span style={{ 
+          <span style={{
             padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', whiteSpace: 'nowrap',
-            background: lead.status === 'Création du projet' ? 'rgba(0,229,255,0.2)' 
-                      : lead.status === 'Terminé' ? 'rgba(0,255,100,0.2)'
-                      : 'rgba(255, 200, 0, 0.2)',
-            color: lead.status === 'Création du projet' ? 'var(--neon-blue)' 
-                  : lead.status === 'Terminé' ? '#00ff66'
-                  : '#ffc800'
+            background: lead.status === 'Création du projet' ? 'rgba(0,229,255,0.2)'
+              : lead.status === 'Terminé' ? 'rgba(0,255,100,0.2)'
+                : 'rgba(255, 200, 0, 0.2)',
+            color: lead.status === 'Création du projet' ? 'var(--neon-blue)'
+              : lead.status === 'Terminé' ? '#00ff66'
+                : '#ffc800'
           }}>
             {lead.status}
           </span>
-          <div style={{marginTop: '10px', fontSize: '0.8rem'}}>
-            <span style={{color: 'var(--text-secondary)'}}>Devis : </span>
-            <span style={{fontWeight: 'bold', color: lead.quote_status === 'validated' ? '#00ff66' : '#fff'}}>
+          <div style={{ marginTop: '10px', fontSize: '0.8rem' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Devis : </span>
+            <span style={{ fontWeight: 'bold', color: lead.quote_status === 'validated' ? '#00ff66' : '#fff' }}>
               {lead.quote_amount > 0 ? `${lead.quote_amount}€ TTC` : 'Non défini'}
               {lead.quote_status === 'validated' ? ' (Validé ✅)' : ''}
             </span>
             {lead.quote_status === 'validated' && (
-              <div style={{fontSize: '0.65rem', color: 'rgba(0,255,100,0.7)', marginTop: '4px'}}>
+              <div style={{ fontSize: '0.65rem', color: 'rgba(0,255,100,0.7)', marginTop: '4px' }}>
                 Signé: {lead.quote_amount_validated}€ TTC le {new Date(lead.quote_validated_at).toLocaleDateString('fr-FR')} (IP: {lead.quote_ip})
               </div>
             )}
           </div>
         </td>
         <td style={{ padding: '1rem', verticalAlign: 'top', display: 'flex', gap: '8px', flexDirection: 'column' }}>
-          <select 
+          <select
             onChange={(e) => updateStatus(lead.id, e.target.value)}
             value={lead.status}
             className="form-input"
@@ -466,16 +470,30 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
             <option value="Terminé">Terminé</option>
           </select>
 
-          <button 
+          <button
             onClick={() => deleteLead(lead.id)}
             style={{
-              padding: '6px', background: 'rgba(255, 50, 50, 0.1)', color: '#ff4444', 
+              padding: '6px', background: 'rgba(255, 50, 50, 0.1)', color: '#ff4444',
               border: '1px solid rgba(255, 50, 50, 0.3)', borderRadius: '4px', cursor: 'pointer',
               fontSize: '0.8rem', width: '100%', textAlign: 'center'
             }}
           >
             🗑️ Supprimer
           </button>
+
+          <a
+            href={`/suivi/${lead.token}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              padding: '6px', background: 'rgba(0, 229, 255, 0.1)', color: 'var(--neon-blue)',
+              border: '1px solid var(--neon-blue)', borderRadius: '4px', cursor: 'pointer',
+              fontSize: '0.8rem', width: '100%', textAlign: 'center', textDecoration: 'none',
+              display: 'block', boxSizing: 'border-box'
+            }}
+          >
+            👁️ Vue Client
+          </a>
         </td>
       </tr>
       {isExpanded && (
@@ -483,27 +501,27 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
           <td colSpan="6" style={{ padding: '1.5rem' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '2rem' }}>
               <div>
-                <LeadChat lead={{...lead, messages}} isAdmin={true} onUpdate={(newM) => setMessages(JSON.stringify(newM))} />
+                <LeadChat lead={{ ...lead, messages }} isAdmin={true} onUpdate={(newM) => setMessages(JSON.stringify(newM))} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--neon-blue)', marginBottom: '8px', fontWeight: 'bold' }}>💰 Montant du Devis (TTC)</label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <input 
-                      type="number" 
+                    <input
+                      type="number"
                       value={quoteAmount}
                       onChange={(e) => setQuoteAmount(parseFloat(e.target.value) || 0)}
                       className="form-input"
                       style={{ flex: 1, fontSize: '0.9rem', background: 'rgba(0,0,0,0.4)' }}
                       placeholder="Ex: 1500"
                     />
-                    <span style={{color: '#fff'}}>€ TTC</span>
+                    <span style={{ color: '#fff' }}>€ TTC</span>
                   </div>
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#ff4444', marginBottom: '8px', fontWeight: 'bold' }}>🔒 Notes Internes (Privé Technicien)</label>
-                  <textarea 
+                  <textarea
                     value={internalNotes}
                     onChange={(e) => setInternalNotes(e.target.value)}
                     className="form-input"
@@ -514,7 +532,7 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--neon-blue)', marginBottom: '8px', fontWeight: 'bold' }}>📢 Notes Partagées avec le Client</label>
-                  <textarea 
+                  <textarea
                     value={adminNotes}
                     onChange={(e) => setAdminNotes(e.target.value)}
                     className="form-input"
@@ -525,18 +543,18 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
 
                 <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '15px' }}>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#00ff66', marginBottom: '8px', fontWeight: 'bold' }}>📦 Modèle 3D Prototypage (.stl)</label>
-                  <input 
-                    type="file" 
-                    accept=".stl" 
-                    onChange={handleStlUpload} 
+                  <input
+                    type="file"
+                    accept=".stl"
+                    onChange={handleStlUpload}
                     ref={stlInputRef}
                     style={{ display: 'none' }}
                   />
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <button 
+                    <button
                       onClick={() => stlInputRef.current.click()}
-                      style={{ 
-                        flex: 1, padding: '8px', background: 'rgba(0,255,100,0.1)', 
+                      style={{
+                        flex: 1, padding: '8px', background: 'rgba(0,255,100,0.1)',
                         border: '1px solid #00ff66', color: '#00ff66', borderRadius: '4px', cursor: 'pointer',
                         fontSize: '0.8rem'
                       }}
@@ -544,7 +562,7 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
                       {stlData ? '🔄 Changer le fichier STL' : '📁 Charger un fichier STL'}
                     </button>
                     {stlData && (
-                      <button 
+                      <button
                         onClick={() => setStlData('')}
                         style={{ padding: '8px', background: 'rgba(255,0,0,0.1)', border: '1px solid #ff4444', color: '#ff4444', borderRadius: '4px', cursor: 'pointer' }}
                         title="Supprimer le modèle"
@@ -554,13 +572,15 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
                     )}
                   </div>
                   {stlData && (
-                    <div style={{ fontSize: '0.7rem', color: '#00ff66', marginTop: '5px' }}>
-                      ✅ Un modèle 3D est actuellement associé à ce projet.
+                    <div style={{ fontSize: '0.7rem', color: lead.stl_status === 'validated' ? '#00ff66' : lead.stl_status === 'rejected' ? '#ff4444' : '#ffc800', marginTop: '8px', fontWeight: 'bold' }}>
+                      {lead.stl_status === 'validated' ? '✅ Prototype Validé par le client' : 
+                       lead.stl_status === 'rejected' ? '❌ Modifications demandées par le client' : 
+                       '⌛ En attente de validation client'}
                     </div>
                   )}
                 </div>
 
-                <button 
+                <button
                   onClick={saveDetails}
                   disabled={isSaving}
                   className="neon-button"
@@ -584,7 +604,7 @@ export default function AdminDashboard() {
   const [gallery, setGallery] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('leads'); // 'leads' or 'gallery'
-  
+
   // Gallery states
   const [uploadLoading, setUploadLoading] = useState(false);
   const [newCaption, setNewCaption] = useState('');
@@ -619,13 +639,13 @@ export default function AdminDashboard() {
     try {
       const confirmAction = window.confirm("Êtes-vous sûr de vouloir supprimer définitivement ce projet ?");
       if (!confirmAction) return;
-      
+
       const res = await fetch('/api/admin/leads', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
       });
-      
+
       if (res.ok) fetchLeads();
     } catch (err) {
       console.error('Delete failed', err);
@@ -636,13 +656,13 @@ export default function AdminDashboard() {
     try {
       const confirmAction = window.confirm(`Passer ce lead au statut : ${newStatus} ? Un email direct sera envoyé au client pour le notifier.`);
       if (!confirmAction) return;
-      
+
       const res = await fetch('/api/admin/leads', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, status: newStatus })
       });
-      
+
       if (res.ok) fetchLeads();
     } catch (err) {
       console.error('Update failed', err);
@@ -718,12 +738,12 @@ export default function AdminDashboard() {
       <main className="section-container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <form onSubmit={handleLogin} className="glass-panel" style={{ width: '100%', maxWidth: '400px', textAlign: 'center' }}>
           <h2 className="neon-text mb-4">Portail Administrateur</h2>
-          <p style={{color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem'}}>Entrez le mot de passe pour gérer les devis.</p>
-          <input 
-            type="password" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            placeholder="Mot de passe" 
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Entrez le mot de passe pour gérer les devis.</p>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Mot de passe"
             className="form-input mb-4"
           />
           <button type="submit" className="neon-button" style={{ width: '100%' }}>Se Connecter</button>
@@ -734,19 +754,19 @@ export default function AdminDashboard() {
 
   return (
     <main className="section-container" style={{ minHeight: '100vh', paddingTop: '8rem', maxWidth: '100%' }}>
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem'}}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
           <h2 className="neon-text" style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🕹 Dashboard Admin</h2>
           <p style={{ color: 'var(--text-secondary)' }}>
             Gérez vos demandes et notifiez automatiquement vos clients depuis cette interface.
           </p>
         </div>
-        <button onClick={activeTab === 'leads' ? fetchLeads : fetchGallery} className="neon-button" style={{padding: '8px 16px', fontSize: '0.8rem'}}>Actualiser</button>
+        <button onClick={activeTab === 'leads' ? fetchLeads : fetchGallery} className="neon-button" style={{ padding: '8px 16px', fontSize: '0.8rem' }}>Actualiser</button>
       </div>
 
       {/* Onglets */}
       <div style={{ display: 'flex', gap: '10px', marginBottom: '2rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem' }}>
-        <button 
+        <button
           onClick={() => setActiveTab('leads')}
           style={{
             background: activeTab === 'leads' ? 'var(--neon-blue)' : 'transparent',
@@ -757,7 +777,7 @@ export default function AdminDashboard() {
         >
           📁 Demandes Client
         </button>
-        <button 
+        <button
           onClick={() => setActiveTab('gallery')}
           style={{
             background: activeTab === 'gallery' ? 'var(--neon-blue)' : 'transparent',
@@ -771,7 +791,7 @@ export default function AdminDashboard() {
       </div>
 
       {loading ? (
-        <p className="text-center" style={{padding: '3rem', color: 'var(--text-secondary)'}}>Chargement en cours...</p>
+        <p className="text-center" style={{ padding: '3rem', color: 'var(--text-secondary)' }}>Chargement en cours...</p>
       ) : activeTab === 'leads' ? (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ minWidth: '800px', width: '100%', borderCollapse: 'collapse', background: 'rgba(10,15,30,0.6)', borderRadius: '12px', overflow: 'hidden' }}>
@@ -794,11 +814,11 @@ export default function AdminDashboard() {
                 </tr>
               )}
               {leads.map(lead => (
-                <LeadRow 
-                  key={lead.id} 
-                  lead={lead} 
-                  updateStatus={updateStatus} 
-                  deleteLead={deleteLead} 
+                <LeadRow
+                  key={lead.id}
+                  lead={lead}
+                  updateStatus={updateStatus}
+                  deleteLead={deleteLead}
                 />
               ))}
             </tbody>
@@ -810,9 +830,9 @@ export default function AdminDashboard() {
           <form onSubmit={uploadImage} style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', marginBottom: '3rem', padding: '1.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
             <div style={{ flex: 1, minWidth: '200px' }}>
               <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Image de la pièce</label>
-              <input 
-                type="file" 
-                accept="image/*" 
+              <input
+                type="file"
+                accept="image/*"
                 onChange={(e) => setSelectedFile(e.target.files[0])}
                 className="form-input"
                 required
@@ -820,8 +840,8 @@ export default function AdminDashboard() {
             </div>
             <div style={{ flex: 2, minWidth: '300px' }}>
               <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Légende (ex: Pièce moteur Turbo, Support ABS...)</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={newCaption}
                 onChange={(e) => setNewCaption(e.target.value)}
                 placeholder="Décrivez la pièce..."
@@ -844,7 +864,7 @@ export default function AdminDashboard() {
                 <img src={img.url} alt={img.caption} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />
                 <div style={{ padding: '10px' }}>
                   <p style={{ fontSize: '0.8rem', color: '#fff', margin: '0 0 10px 0', height: '2.4em', overflow: 'hidden' }}>{img.caption}</p>
-                  <button 
+                  <button
                     onClick={() => deleteImage(img.id)}
                     style={{ width: '100%', padding: '5px', background: 'rgba(255,0,0,0.1)', color: '#ff4444', border: '1px solid rgba(255,0,0,0.2)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
                   >

@@ -1,8 +1,9 @@
+'use client';
 import React, { useState, useEffect, useRef, use } from 'react';
 import dynamic from 'next/dynamic';
 
 // On importe le visualiseur 3D dynamiquement pour le charger uniquement côté client
-const STLViz = dynamic(() => import('@/components/STLViz'), { 
+const STLViz = dynamic(() => import('@/components/STLViz'), {
   ssr: false,
   loading: () => <div style={{ height: '400px', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--neon-blue)' }}>Initialisation du moteur 3D...</div>
 });
@@ -130,7 +131,7 @@ function SignaturePad({ onSave, onClear }) {
   return (
     <div style={{ textAlign: 'center' }}>
       <div style={{ background: '#fff', borderRadius: '8px', overflow: 'hidden', border: '2px solid var(--neon-blue)', cursor: 'crosshair', touchAction: 'none' }}>
-        <canvas 
+        <canvas
           ref={canvasRef}
           width={400}
           height={150}
@@ -166,16 +167,16 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
       const url = isAdmin ? `/api/admin/leads` : `/api/suivi/${lead.token}`;
       const res = await fetch(url);
       const result = await res.json();
-      
+
       if (res.ok) {
-        const remoteMessagesStr = isAdmin 
-          ? result.find(l => l.id === lead.id)?.messages 
+        const remoteMessagesStr = isAdmin
+          ? result.find(l => l.id === lead.id)?.messages
           : result.lead?.messages;
-        
+
         let remoteMessages = [];
         try {
           remoteMessages = typeof remoteMessagesStr === 'string' ? JSON.parse(remoteMessagesStr) : remoteMessagesStr;
-        } catch(e) {}
+        } catch (e) { }
 
         if (Array.isArray(remoteMessages) && JSON.stringify(remoteMessages) !== JSON.stringify(messages)) {
           setMessages(remoteMessages);
@@ -213,7 +214,7 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
 
     let finalFile = imageContent;
     let fileType = imageContent && imageContent.startsWith('data:application/pdf') ? 'pdf' : 'image';
-    
+
     if (imageContent && fileType === 'image') {
       finalFile = await compressImage(imageContent);
     }
@@ -231,9 +232,9 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
       const res = await fetch(url, {
         method: isAdmin ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          id: lead.id, 
-          message: msgObj 
+        body: JSON.stringify({
+          id: lead.id,
+          message: msgObj
         })
       });
       const result = await res.json();
@@ -263,10 +264,10 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
   const chatHeight = isExpanded ? '92vh' : '550px';
 
   return (
-    <div className="chat-container" style={{ 
-      display: 'flex', flexDirection: 'column', height: chatHeight, 
-      background: 'rgba(0,0,0,0.6)', borderRadius: '12px', 
-      border: '1px solid var(--glass-border)', overflow: 'hidden', 
+    <div className="chat-container" style={{
+      display: 'flex', flexDirection: 'column', height: chatHeight,
+      background: 'rgba(0,0,0,0.6)', borderRadius: '12px',
+      border: '1px solid var(--glass-border)', overflow: 'hidden',
       transition: 'all 0.4s ease',
       boxShadow: isExpanded ? '0 0 100px rgba(0,0,0,0.8)' : 'none',
       position: isExpanded ? 'fixed' : 'relative',
@@ -279,8 +280,8 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
       <div className="chat-header" style={{ padding: '12px 15px', background: 'rgba(255,255,255,0.08)', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--neon-blue)' }}>🖋️ Échanges avec l'Expert</span>
-          <button 
-            onClick={() => setIsExpanded(!isExpanded)} 
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
             style={{ background: 'rgba(0,229,255,0.1)', border: '1px solid var(--neon-blue)', color: 'var(--neon-blue)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer' }}
           >
             {isExpanded ? '⤫ Réduire' : '⤢ Agrandir'}
@@ -297,15 +298,15 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
         {messages.map((msg, i) => {
           const isMe = (!isAdmin && msg.sender === 'client') || (isAdmin && msg.sender === 'admin');
           return (
-            <div key={i} style={{ 
+            <div key={i} style={{
               alignSelf: isMe ? 'flex-end' : 'flex-start',
               maxWidth: isExpanded ? '70%' : '85%',
               display: 'flex',
               flexDirection: 'column',
               alignItems: isMe ? 'flex-end' : 'flex-start'
             }}>
-              <div style={{ 
-                padding: '12px 16px', 
+              <div style={{
+                padding: '12px 16px',
                 borderRadius: isMe ? '18px 18px 2px 18px' : '18px 18px 18px 2px',
                 background: isMe ? '#ffc800' : 'rgba(255,255,255,0.12)',
                 color: isMe ? '#000' : '#fff',
@@ -316,8 +317,8 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
                   <img src={msg.image} alt="Upload" style={{ maxWidth: '100%', borderRadius: '10px', cursor: 'pointer', display: 'block' }} onClick={() => openBase64File(msg.image)} />
                 ) : msg.type === 'pdf' ? (
                   <div onClick={() => openBase64File(msg.image)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{fontSize: '1.5rem'}}>📄</span>
-                    <div style={{fontSize: '0.8rem', textDecoration: 'underline'}}>Ouvrir le Devis/Facture PDF</div>
+                    <span style={{ fontSize: '1.5rem' }}>📄</span>
+                    <div style={{ fontSize: '0.8rem', textDecoration: 'underline' }}>Ouvrir le Devis/Facture PDF</div>
                   </div>
                 ) : (
                   msg.text
@@ -332,27 +333,27 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
         <div ref={chatEndRef} />
       </div>
 
-      <div className="chat-input" style={{ 
-        padding: '12px', 
-        background: 'rgba(255,255,255,0.1)', 
-        borderTop: '1px solid var(--glass-border)', 
-        display: 'flex', 
+      <div className="chat-input" style={{
+        padding: '12px',
+        background: 'rgba(255,255,255,0.1)',
+        borderTop: '1px solid var(--glass-border)',
+        display: 'flex',
         gap: '10px',
         alignItems: 'center',
         flexWrap: 'nowrap'
       }}>
-        <input 
-          type="file" 
-          accept="image/*,application/pdf" 
-          ref={fileInputRef} 
-          style={{ display: 'none' }} 
+        <input
+          type="file"
+          accept="image/*,application/pdf"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
           onChange={handleFileUpload}
         />
-        <button 
+        <button
           onClick={() => fileInputRef.current.click()}
-          style={{ 
-            background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', 
-            width: '42px', height: '42px', cursor: 'pointer', display: 'flex', 
+          style={{
+            background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%',
+            width: '42px', height: '42px', cursor: 'pointer', display: 'flex',
             alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem',
             flexShrink: 0
           }}
@@ -360,29 +361,29 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
         >
           📎
         </button>
-        <input 
-          type="text" 
+        <input
+          type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
           placeholder="Message..."
-          style={{ 
-            flex: 1, 
+          style={{
+            flex: 1,
             minWidth: '0',
-            background: 'rgba(0,0,0,0.3)', 
-            border: '1px solid var(--glass-border)', 
-            borderRadius: '25px', 
+            background: 'rgba(0,0,0,0.3)',
+            border: '1px solid var(--glass-border)',
+            borderRadius: '25px',
             height: '42px',
-            padding: '0 20px', 
-            color: '#fff', 
-            fontSize: '0.95rem' 
+            padding: '0 20px',
+            color: '#fff',
+            fontSize: '0.95rem'
           }}
         />
-        <button 
+        <button
           onClick={() => sendMessage()}
           disabled={isSending || (!newMessage.trim())}
-          style={{ 
-            background: '#ffc800', color: '#000', border: 'none', borderRadius: '50%', 
+          style={{
+            background: '#ffc800', color: '#000', border: 'none', borderRadius: '50%',
             width: '42px', height: '42px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.2rem',
             flexShrink: 0,
             opacity: isSending || !newMessage.trim() ? 0.5 : 1
@@ -398,18 +399,21 @@ function LeadChat({ lead, isAdmin, onUpdate }) {
 export default function SuiviProjet({ params }) {
   const unwrappedParams = use(params);
   const token = unwrappedParams.token;
-  
+
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [signatureData, setSignatureData] = useState(null);
   const [isValidating, setIsValidating] = useState(false);
+  const [isStlValidating, setIsStlValidating] = useState(false);
+  const [stlComment, setStlComment] = useState('');
+  const [showStlReject, setShowStlReject] = useState(false);
 
   const fetchProject = async () => {
     try {
       const res = await fetch(`/api/suivi/${token}`);
       const result = await res.json();
-      
+
       if (res.ok) {
         setData(result.lead);
       } else {
@@ -453,6 +457,40 @@ export default function SuiviProjet({ params }) {
     }
   };
 
+  const handleStlValidate = async (status) => {
+    if (status === 'rejected' && !stlComment.trim()) {
+      alert("Veuillez expliquer brièvement les modifications souhaitées.");
+      return;
+    }
+
+    const confirmMsg = status === 'validated' 
+      ? "Confirmez-vous la validation du prototype 3D ?" 
+      : "Voulez-vous envoyer votre demande de modifications ?";
+    
+    if (!window.confirm(confirmMsg)) return;
+
+    setIsStlValidating(true);
+    try {
+      const res = await fetch(`/api/suivi/${token}/stl-validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, message: stlComment })
+      });
+      if (res.ok) {
+        alert(status === 'validated' ? "✅ Prototype validé !" : "📩 Demande de modifications envoyée !");
+        setShowStlReject(false);
+        setStlComment('');
+        fetchProject();
+      } else {
+        alert("Erreur lors de la mise à jour.");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsStlValidating(false);
+    }
+  };
+
   if (loading) {
     return (
       <main className="section-container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -465,29 +503,29 @@ export default function SuiviProjet({ params }) {
     return (
       <main className="section-container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div className="glass-panel text-center">
-          <h2 style={{color: '#ff4444', marginBottom: '1rem'}}>Accès Refusé / Introuvable</h2>
-          <p style={{color: 'var(--text-secondary)'}}>{error || "Ce numéro de projet n'existe pas."}</p>
+          <h2 style={{ color: '#ff4444', marginBottom: '1rem' }}>Accès Refusé / Introuvable</h2>
+          <p style={{ color: 'var(--text-secondary)' }}>{error || "Ce numéro de projet n'existe pas."}</p>
         </div>
       </main>
     );
   }
 
   const currentStepIndex = STEPS.indexOf(data.status);
-  
+
   let historyDict = {};
   if (data.history) {
     try {
       historyDict = JSON.parse(data.history);
-    } catch(e) {}
+    } catch (e) { }
   }
-  
+
   return (
     <main className="section-container" style={{ minHeight: '100vh', paddingTop: '8rem', maxWidth: '900px', margin: '0 auto' }}>
-      
+
       <div className="glass-panel mb-4 text-center">
-        <h1 className="neon-text mb-4" style={{fontSize: '2rem'}}>Projet : {data.type}</h1>
-        <p style={{color: 'var(--text-secondary)'}}>Client : {data.name}</p>
-        <p style={{color: 'var(--text-secondary)', fontSize: '0.9rem'}}>Débuté le : {new Date(data.created_at).toLocaleDateString('fr-FR')}</p>
+        <h1 className="neon-text mb-4" style={{ fontSize: '2rem' }}>Projet : {data.type}</h1>
+        <p style={{ color: 'var(--text-secondary)' }}>Client : {data.name}</p>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Débuté le : {new Date(data.created_at).toLocaleDateString('fr-FR')}</p>
       </div>
 
       {/* Section Devis */}
@@ -498,21 +536,21 @@ export default function SuiviProjet({ params }) {
               <h2 className="neon-text" style={{ fontSize: '1.4rem', margin: 0 }}>💰 Devis du Projet</h2>
               <p style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '10px 0', color: '#fff' }}>{data.quote_amount} € TTC</p>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                {data.quote_status === 'validated' 
-                  ? `✓ Accord donné par le client.` 
+                {data.quote_status === 'validated'
+                  ? `✓ Accord donné par le client.`
                   : "⌛ En attente de votre accord pour lancer la production."}
               </p>
             </div>
-            
+
             {data.quote_status !== 'validated' ? (
               <div style={{ maxWidth: '420px', width: '100%' }}>
                 <p style={{ fontSize: '0.85rem', marginBottom: '10px', color: 'var(--neon-blue)' }}>⬇️ Signez ci-dessous pour lancer le projet :</p>
                 <SignaturePad onSave={setSignatureData} onClear={() => setSignatureData(null)} />
                 <p style={{ fontSize: '0.75rem', color: 'var(--neon-blue)', marginTop: '8px', fontStyle: 'italic', textAlign: 'center' }}>
-                  💡 Étape 1 : Signez au doigt ou à la souris. <br/>
+                  💡 Étape 1 : Signez au doigt ou à la souris. <br />
                   💡 Étape 2 : Cliquez sur <strong>"Pré-valider"</strong> pour figer votre signature.
                 </p>
-                <button 
+                <button
                   onClick={handleValidateQuote}
                   disabled={!signatureData || isValidating}
                   className="neon-button"
@@ -529,8 +567,8 @@ export default function SuiviProjet({ params }) {
                 <p style={{ color: '#00ff66', fontWeight: 'bold', fontSize: '1.1rem', margin: 0 }}>✓ Devis Validé</p>
                 <img src={data.quote_signature} alt="Signature" style={{ maxHeight: '60px', marginTop: '10px', filter: 'invert(1)' }} />
                 <div style={{ marginTop: '10px', fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', borderTop: '1px solid rgba(0,255,100,0.2)', paddingTop: '8px' }}>
-                  💰 Montant validé : <strong>{data.quote_amount_validated} € TTC</strong><br/>
-                  📅 Signé le : {new Date(data.quote_validated_at).toLocaleString('fr-FR')}<br/>
+                  💰 Montant validé : <strong>{data.quote_amount_validated} € TTC</strong><br />
+                  📅 Signé le : {new Date(data.quote_validated_at).toLocaleString('fr-FR')}<br />
                   🌐 IP : {data.quote_ip}
                 </div>
               </div>
@@ -540,9 +578,9 @@ export default function SuiviProjet({ params }) {
       )}
 
       <div className="glass-panel">
-        <h2 className="mb-4" style={{fontSize: '1.5rem', textAlign: 'center'}}>Suivi d'Avancement</h2>
-        
-        <div className="timeline-container" style={{marginTop: '3rem', position: 'relative'}}>
+        <h2 className="mb-4" style={{ fontSize: '1.5rem', textAlign: 'center' }}>Suivi d'Avancement</h2>
+
+        <div className="timeline-container" style={{ marginTop: '3rem', position: 'relative' }}>
           {/* Ligne verticale de fond */}
           <div style={{
             position: 'absolute',
@@ -564,7 +602,7 @@ export default function SuiviProjet({ params }) {
             let dotColor = 'var(--dark-glass)';
             let dotBorder = 'var(--glass-border)';
             let icon = '';
-            
+
             if (isCompleted) {
               color = '#fff';
               dotColor = 'var(--neon-blue)';
@@ -604,22 +642,22 @@ export default function SuiviProjet({ params }) {
                 </div>
                 <div style={{ marginLeft: '20px' }}>
                   <h3 style={{
-                    color: color, 
-                    margin: 0, 
+                    color: color,
+                    margin: 0,
                     fontSize: '1.1rem',
                     textShadow: isActive ? '0 0 10px var(--neon-blue-glow)' : 'none'
                   }}>
                     {step}
                   </h3>
                   {historyDict[step] && (
-                    <div style={{fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px'}}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
                       {isActive ? 'Démarré le ' : 'Validé le '} {new Date(historyDict[step]).toLocaleString('fr-FR', {
                         day: '2-digit', month: '2-digit', year: 'numeric',
                         hour: '2-digit', minute: '2-digit'
                       }).replace(':', 'h')}
                     </div>
                   )}
-                  {isActive && <span style={{fontSize: '0.8rem', color: 'var(--neon-blue)', opacity: 0.8, display: 'block', marginTop: '4px'}}>En cours d'exécution...</span>}
+                  {isActive && <span style={{ fontSize: '0.8rem', color: 'var(--neon-blue)', opacity: 0.8, display: 'block', marginTop: '4px' }}>En cours d'exécution...</span>}
                 </div>
               </div>
             );
@@ -627,31 +665,138 @@ export default function SuiviProjet({ params }) {
         </div>
       </div>
 
-      {/* Visualisation 3D (Si disponible) */}
-      {data.stl_data && (
-        <div className="glass-panel" style={{ marginTop: '2rem', padding: '2rem' }}>
-          <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: 'var(--neon-blue)', borderBottom: '1px solid rgba(0,229,255,0.1)', paddingBottom: '10px' }}>
-            📦 Prototype 3D Interactif
-          </h2>
-          <STLViz stlData={data.stl_data} />
-          <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-            Le prototype numérique est prêt. Vous pouvez manipuler la pièce pour l'observer sous tous les angles.
-          </p>
-        </div>
-      )}
+      {/* Visualisation 3D (Toujours visible) */}
+      <div className="glass-panel" style={{ marginTop: '2rem', padding: '2rem' }}>
+        <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: 'var(--neon-blue)', borderBottom: '1px solid rgba(0,229,255,0.1)', paddingBottom: '10px' }}>
+          📦 Prototype 3D Interactif
+        </h2>
+
+        {!data.stl_data ? (
+          <div style={{
+            height: '300px',
+            background: 'rgba(255,255,255,0.03)',
+            borderRadius: '12px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '1px dashed rgba(0,229,255,0.2)',
+            color: 'var(--text-secondary)',
+            textAlign: 'center',
+            padding: '20px'
+          }}>
+            <span style={{ fontSize: '2rem', marginBottom: '10px' }}>⌛</span>
+            <p style={{ fontSize: '0.9rem', maxWidth: '400px' }}>
+              Le modèle 3D est en cours de préparation par nos techniciens.<br />
+              <strong>On attend que le fichier soit prêt pour le charger dans le projet.</strong>
+            </p>
+          </div>
+        ) : (
+          <>
+            <STLViz stlData={data.stl_data} />
+            <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+              Le prototype numérique est prêt. Vous pouvez manipuler la pièce pour l'observer sous tous les angles.
+            </p>
+
+            {/* Actions de validation STL */}
+            <div style={{ marginTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.5rem' }}>
+              {data.stl_status === 'pending' || !data.stl_status ? (
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ color: '#fff', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                    Le prototype vous convient-il ?
+                  </p>
+                  <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => handleStlValidate('validated')}
+                      disabled={isStlValidating}
+                      style={{
+                        padding: '12px 25px', background: '#00ff66', color: '#000',
+                        border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer',
+                        fontSize: '0.9rem', boxShadow: '0 0 15px rgba(0,255,100,0.3)'
+                      }}
+                    >
+                      {isStlValidating ? 'Validation...' : '✅ Valider le Prototype'}
+                    </button>
+                    <button
+                      onClick={() => setShowStlReject(!showStlReject)}
+                      style={{
+                        padding: '12px 25px', background: 'rgba(255,50,50,0.1)', color: '#ff4444',
+                        border: '1px solid #ff4444', borderRadius: '4px', cursor: 'pointer',
+                        fontSize: '0.9rem'
+                      }}
+                    >
+                      ❌ Demander des modifications
+                    </button>
+                  </div>
+
+                  {showStlReject && (
+                    <div style={{ marginTop: '20px', maxWidth: '500px', margin: '20px auto 0' }}>
+                      <textarea
+                        value={stlComment}
+                        onChange={(e) => setStlComment(e.target.value)}
+                        placeholder="Quelles modifications souhaitez-vous apporter ?"
+                        style={{
+                          width: '100%', background: 'rgba(0,0,0,0.4)', color: '#fff',
+                          border: '1px solid var(--glass-border)', borderRadius: '8px',
+                          padding: '12px', minHeight: '100px', fontSize: '0.9rem'
+                        }}
+                      />
+                      <button
+                        onClick={() => handleStlValidate('rejected')}
+                        disabled={isStlValidating || !stlComment.trim()}
+                        style={{
+                          width: '100%', marginTop: '10px', padding: '10px',
+                          background: '#fff', color: '#000', border: 'none',
+                          borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer'
+                        }}
+                      >
+                        Envoyer ma demande
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : data.stl_status === 'validated' ? (
+                <div style={{
+                  textAlign: 'center', background: 'rgba(0,255,100,0.1)',
+                  padding: '15px', borderRadius: '8px', border: '1px solid #00ff66'
+                }}>
+                  <p style={{ color: '#00ff66', fontWeight: 'bold', margin: 0 }}>
+                    ✅ Prototype validé par vos soins. Production imminente.
+                  </p>
+                </div>
+              ) : (
+                <div style={{
+                  textAlign: 'center', background: 'rgba(255,150,0,0.1)',
+                  padding: '15px', borderRadius: '8px', border: '1px solid #ff9600'
+                }}>
+                  <p style={{ color: '#ff9600', fontWeight: 'bold', margin: 0 }}>
+                    ⌛ Modifications demandées. Nos techniciens étudient votre message.
+                  </p>
+                  <button 
+                    onClick={() => handleStlValidate('validated')}
+                    style={{ background: 'none', border: 'none', color: '#fff', textDecoration: 'underline', fontSize: '0.8rem', marginTop: '10px', cursor: 'pointer' }}
+                  >
+                    Finalement, je valide le modèle actuel
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Chat Collaboratif avec Expert */}
       <div className="glass-panel" style={{ marginTop: '2rem' }}>
-        <LeadChat 
-          lead={data} 
-          isAdmin={false} 
-          onUpdate={(newMessages) => setData(prev => ({...prev, messages: newMessages}))} 
+        <LeadChat
+          lead={data}
+          isAdmin={false}
+          onUpdate={(newMessages) => setData(prev => ({ ...prev, messages: newMessages }))}
         />
-        
+
         <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid var(--glass-border)' }}>
           <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--neon-blue)', marginBottom: '10px', fontWeight: 'bold' }}>👤 Notes de l'Expert</label>
-          <div style={{ 
-            padding: '1.2rem', background: 'rgba(0,229,255,0.05)', borderRadius: '8px', 
+          <div style={{
+            padding: '1.2rem', background: 'rgba(0,229,255,0.05)', borderRadius: '8px',
             border: '1px solid var(--glass-border)', color: '#fff',
             fontSize: '0.9rem', whiteSpace: 'pre-wrap', lineHeight: '1.5'
           }}>
