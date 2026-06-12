@@ -1,5 +1,8 @@
 import './globals.css'
 import { Orbitron, Inter } from 'next/font/google'
+import { TroideyProvider } from '@/context/TroideyContext'
+import Troidey from '@/components/Troidey'
+import { usePathname } from 'next/navigation'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const orbitron = Orbitron({ subsets: ['latin'], variable: '--font-orbitron' })
@@ -10,7 +13,10 @@ export const metadata = {
 }
 
 export default function RootLayout({ children }) {
+  const pathname = usePathname();
+  const showTroidey = ['/', '/contact'].includes(pathname) || pathname.startsWith('/suivi');
   return (
+
     <html lang="fr" className={`${inter.variable} ${orbitron.variable}`}>
       <body>
         <div className="bg-logo-watermark"></div>
@@ -24,7 +30,10 @@ export default function RootLayout({ children }) {
           </div>
         </nav>
         
+              <TroideyProvider>
         {children}
+        {showTroidey && <Troidey />}
+      </TroideyProvider>
 
         <footer style={{
           marginTop: '5rem',
