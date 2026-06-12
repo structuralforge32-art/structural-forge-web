@@ -14,7 +14,7 @@ export async function GET() {
 
 export async function POST(req) {
   try {
-    const { reference, name, price, stock } = await req.json();
+    const { reference, name, price, stock, observations } = await req.json();
 
     if (!name) {
       return NextResponse.json({ error: 'Le nom de la pièce est requis' }, { status: 400 });
@@ -22,8 +22,8 @@ export async function POST(req) {
 
     const db = await openDB();
     await db.run(
-      'INSERT INTO parts (reference, name, price, stock) VALUES (?, ?, ?, ?)',
-      [reference || '', name, parseFloat(price) || 0, parseInt(stock) || 0]
+      'INSERT INTO parts (reference, name, price, stock, observations) VALUES (?, ?, ?, ?, ?)',
+      [reference || '', name, parseFloat(price) || 0, parseInt(stock) || 0, observations || '']
     );
 
     return NextResponse.json({ success: true });
@@ -35,7 +35,7 @@ export async function POST(req) {
 
 export async function PUT(req) {
   try {
-    const { id, reference, name, price, stock, action } = await req.json();
+    const { id, reference, name, price, stock, observations, action } = await req.json();
     const partId = Number(id);
 
     if (!id || isNaN(partId)) return NextResponse.json({ error: 'ID manquant ou invalide' }, { status: 400 });
@@ -54,6 +54,7 @@ export async function PUT(req) {
       if (name !== undefined) { updateFields.push('name = ?'); params.push(name); }
       if (price !== undefined) { updateFields.push('price = ?'); params.push(parseFloat(price)); }
       if (stock !== undefined) { updateFields.push('stock = ?'); params.push(parseInt(stock)); }
+      if (observations !== undefined) { updateFields.push('observations = ?'); params.push(observations); }
 
       if (updateFields.length > 0) {
         params.push(id);

@@ -55,6 +55,7 @@ export async function openDB() {
         name TEXT NOT NULL,
         price REAL DEFAULT 0,
         stock INTEGER DEFAULT 0,
+        observations TEXT DEFAULT '',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -93,6 +94,9 @@ export async function openDB() {
         END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='stl_status') THEN
           ALTER TABLE leads ADD COLUMN stl_status TEXT DEFAULT 'pending';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='parts' AND column_name='observations') THEN
+          ALTER TABLE parts ADD COLUMN observations TEXT DEFAULT '';
         END IF;
       END $$;
     `);
@@ -173,6 +177,7 @@ export async function openDB() {
         name TEXT NOT NULL,
         price REAL DEFAULT 0,
         stock INTEGER DEFAULT 0,
+        observations TEXT DEFAULT '',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -192,6 +197,7 @@ export async function openDB() {
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN quote_amount_validated REAL DEFAULT 0"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN stl_data TEXT"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN stl_status TEXT DEFAULT 'pending'"); } catch (e) {}
+    try { await localDb.exec("ALTER TABLE parts ADD COLUMN observations TEXT DEFAULT ''"); } catch (e) {}
   }
   return localDb;
 }

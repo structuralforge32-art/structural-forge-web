@@ -627,7 +627,9 @@ export default function AdminDashboard() {
 
   // Parts states
   const [partLoading, setPartLoading] = useState(false);
-  const [newPart, setNewPart] = useState({ reference: '', name: '', price: 0, stock: 0 });
+  const [newPart, setNewPart] = useState({ reference: '', name: '', price: 0, stock: 0, observations: '' });
+  const [editingPartId, setEditingPartId] = useState(null);
+  const [editingPartData, setEditingPartData] = useState({ reference: '', name: '', price: 0, stock: 0, observations: '' });
 
   // Authentification simplifiée
   const handleLogin = (e) => {
@@ -773,7 +775,7 @@ export default function AdminDashboard() {
         body: JSON.stringify(newPart)
       });
       if (res.ok) {
-        setNewPart({ reference: '', name: '', price: 0, stock: 0 });
+        setNewPart({ reference: '', name: '', price: 0, stock: 0, observations: '' });
         fetchParts();
         alert('Pièce ajoutée !');
       }
@@ -808,6 +810,48 @@ export default function AdminDashboard() {
       if (res.ok) fetchParts();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const startEditing = (part) => {
+    setEditingPartId(part.id);
+    setEditingPartData({
+      reference: part.reference || '',
+      name: part.name || '',
+      price: part.price || 0,
+      stock: part.stock || 0,
+      observations: part.observations || ''
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditingPartId(null);
+  };
+
+  const saveEditing = async (id) => {
+    try {
+      const res = await fetch('/api/admin/parts', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          reference: editingPartData.reference,
+          name: editingPartData.name,
+          price: editingPartData.price,
+          stock: editingPartData.stock,
+          observations: editingPartData.observations
+        })
+      });
+      if (res.ok) {
+        setEditingPartId(null);
+        fetchParts();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(`Erreur lors de la modification : ${data.error || 'Erreur inconnue'}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erreur lors de la modification.');
     }
   };
 
@@ -993,6 +1037,16 @@ export default function AdminDashboard() {
                 required
               />
             </div>
+            <div style={{ flex: 2, minWidth: '200px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Observations / Notes</label>
+              <input
+                type="text"
+                value={newPart.observations}
+                onChange={(e) => setNewPart({ ...newPart, observations: e.target.value })}
+                placeholder="Ex: Très bon état, impression ABS..."
+                className="form-input"
+              />
+            </div>
             <div style={{ width: '120px' }}>
               <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Prix (€)</label>
               <input
@@ -1027,6 +1081,7 @@ export default function AdminDashboard() {
                 <tr>
                   <th style={{ padding: '12px' }}>Réf.</th>
                   <th style={{ padding: '12px' }}>Nom</th>
+                  <th style={{ padding: '12px' }}>Observations</th>
                   <th style={{ padding: '12px' }}>Prix</th>
                   <th style={{ padding: '12px' }}>Stock</th>
                   <th style={{ padding: '12px', textAlign: 'right' }}>Actions</th>
@@ -1035,48 +1090,169 @@ export default function AdminDashboard() {
               <tbody>
                 {parts.length === 0 && (
                   <tr>
-                    <td colSpan="5" style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>Aucune pièce en stock.</td>
+                    <td colSpan="6" style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>Aucune pièce en stock.</td>
                   </tr>
                 )}
-                {parts.map(part => (
-                  <tr key={part.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <td style={{ padding: '12px', color: 'var(--neon-blue)', fontWeight: 'bold' }}>{part.reference || '-'}</td>
-                    <td style={{ padding: '12px' }}>{part.name}</td>
-                    <td style={{ padding: '12px' }}>{part.price}€</td>
-                    <td style={{ padding: '12px' }}>
-                      <span style={{ 
-                        padding: '2px 8px', borderRadius: '10px', 
-                        background: part.stock > 0 ? 'rgba(0,255,100,0.1)' : 'rgba(255,0,0,0.1)',
-                        color: part.stock > 0 ? '#00ff66' : '#ff4444',
-                        fontSize: '0.85rem'
-                      }}>
-                        {part.stock} en stock
-                      </span>
-                    </td>
-                    <td style={{ padding: '12px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                      <button 
-                        onClick={() => sellPart(part.id)}
-                        disabled={part.stock <= 0}
-                        style={{ 
-                          padding: '6px 12px', background: 'rgba(0,255,100,0.2)', color: '#00ff66', 
-                          border: '1px solid #00ff66', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem',
-                          opacity: part.stock <= 0 ? 0.3 : 1
-                        }}
-                      >
-                        Vendu
-                      </button>
-                      <button 
-                        onClick={() => deletePart(part.id)}
-                        style={{ 
-                          padding: '6px', background: 'rgba(255,0,0,0.1)', color: '#ff4444', 
-                          border: '1px solid #ff4444', borderRadius: '4px', cursor: 'pointer'
-                        }}
-                      >
-                        🗑
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {parts.map(part => {
+                  const isEditing = editingPartId === part.id;
+                  return (
+                    <tr key={part.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: isEditing ? 'rgba(0,229,255,0.05)' : 'transparent' }}>
+                      {isEditing ? (
+                        <>
+                          <td style={{ padding: '8px 12px' }}>
+                            <input 
+                              type="text" 
+                              value={editingPartData.reference}
+                              onChange={(e) => setEditingPartData({ ...editingPartData, reference: e.target.value })}
+                              className="form-input"
+                              style={{ width: '100%', minWidth: '70px', padding: '4px 8px', fontSize: '0.9rem', background: 'rgba(0,0,0,0.5)' }}
+                              placeholder="Réf"
+                            />
+                          </td>
+                          <td style={{ padding: '8px 12px' }}>
+                            <input 
+                              type="text" 
+                              value={editingPartData.name}
+                              onChange={(e) => setEditingPartData({ ...editingPartData, name: e.target.value })}
+                              className="form-input"
+                              style={{ width: '100%', minWidth: '120px', padding: '4px 8px', fontSize: '0.9rem', background: 'rgba(0,0,0,0.5)' }}
+                              required
+                              placeholder="Nom"
+                            />
+                          </td>
+                          <td style={{ padding: '8px 12px' }}>
+                            <textarea 
+                              value={editingPartData.observations}
+                              onChange={(e) => setEditingPartData({ ...editingPartData, observations: e.target.value })}
+                              className="form-input"
+                              style={{ width: '100%', minWidth: '150px', padding: '4px 8px', fontSize: '0.85rem', background: 'rgba(0,0,0,0.5)', minHeight: '36px', resize: 'vertical' }}
+                              placeholder="Observations..."
+                            />
+                          </td>
+                          <td style={{ padding: '8px 12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <input 
+                                type="number" 
+                                value={editingPartData.price}
+                                onChange={(e) => setEditingPartData({ ...editingPartData, price: e.target.value })}
+                                className="form-input"
+                                style={{ width: '70px', padding: '4px 8px', fontSize: '0.9rem', background: 'rgba(0,0,0,0.5)' }}
+                                required
+                              />
+                              <span>€</span>
+                            </div>
+                          </td>
+                          <td style={{ padding: '8px 12px' }}>
+                            <input 
+                              type="number" 
+                              value={editingPartData.stock}
+                              onChange={(e) => setEditingPartData({ ...editingPartData, stock: e.target.value })}
+                              className="form-input"
+                              style={{ width: '70px', padding: '4px 8px', fontSize: '0.9rem', background: 'rgba(0,0,0,0.5)' }}
+                              required
+                            />
+                          </td>
+                          <td style={{ padding: '12px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                            <button 
+                              onClick={() => saveEditing(part.id)}
+                              style={{ 
+                                padding: '6px 12px', background: 'rgba(0,255,100,0.2)', color: '#00ff66', 
+                                border: '1px solid #00ff66', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem'
+                              }}
+                            >
+                              💾 Sauver
+                            </button>
+                            <button 
+                              onClick={cancelEditing}
+                              style={{ 
+                                padding: '6px 12px', background: 'rgba(255,255,255,0.1)', color: '#fff', 
+                                border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem'
+                              }}
+                            >
+                              ❌
+                            </button>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td 
+                            onClick={() => startEditing(part)} 
+                            style={{ padding: '12px', color: 'var(--neon-blue)', fontWeight: 'bold', cursor: 'pointer' }}
+                            title="Cliquer pour modifier"
+                          >
+                            {part.reference || '-'}
+                          </td>
+                          <td 
+                            onClick={() => startEditing(part)} 
+                            style={{ padding: '12px', cursor: 'pointer' }}
+                            title="Cliquer pour modifier"
+                          >
+                            {part.name}
+                          </td>
+                          <td 
+                            onClick={() => startEditing(part)} 
+                            style={{ padding: '12px', color: 'var(--text-secondary)', fontSize: '0.9rem', cursor: 'pointer' }}
+                            title="Cliquer pour modifier"
+                          >
+                            {part.observations || <span style={{ fontStyle: 'italic', opacity: 0.4 }}>Aucune</span>}
+                          </td>
+                          <td 
+                            onClick={() => startEditing(part)} 
+                            style={{ padding: '12px', cursor: 'pointer' }}
+                            title="Cliquer pour modifier"
+                          >
+                            {part.price}€
+                          </td>
+                          <td 
+                            onClick={() => startEditing(part)} 
+                            style={{ padding: '12px', cursor: 'pointer' }}
+                            title="Cliquer pour modifier"
+                          >
+                            <span style={{ 
+                              padding: '2px 8px', borderRadius: '10px', 
+                              background: part.stock > 0 ? 'rgba(0,255,100,0.1)' : 'rgba(255,0,0,0.1)',
+                              color: part.stock > 0 ? '#00ff66' : '#ff4444',
+                              fontSize: '0.85rem'
+                            }}>
+                              {part.stock} en stock
+                            </span>
+                          </td>
+                          <td style={{ padding: '12px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                            <button 
+                              onClick={() => startEditing(part)}
+                              style={{ 
+                                padding: '6px 12px', background: 'rgba(0,229,255,0.1)', color: 'var(--neon-blue)', 
+                                border: '1px solid var(--neon-blue)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem'
+                              }}
+                            >
+                              ✏️ Modifier
+                            </button>
+                            <button 
+                              onClick={() => sellPart(part.id)}
+                              disabled={part.stock <= 0}
+                              style={{ 
+                                padding: '6px 12px', background: 'rgba(0,255,100,0.2)', color: '#00ff66', 
+                                border: '1px solid #00ff66', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem',
+                                opacity: part.stock <= 0 ? 0.3 : 1
+                              }}
+                            >
+                              Vendu
+                            </button>
+                            <button 
+                              onClick={() => deletePart(part.id)}
+                              style={{ 
+                                padding: '6px', background: 'rgba(255,0,0,0.1)', color: '#ff4444', 
+                                border: '1px solid #ff4444', borderRadius: '4px', cursor: 'pointer'
+                              }}
+                            >
+                              🗑
+                            </button>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
