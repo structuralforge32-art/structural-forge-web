@@ -1,6 +1,7 @@
 
+import './globals.css';
 import { Orbitron, Inter } from 'next/font/google'
-import TroideyProviderWrapper from '@/components/TroideyProviderWrapper'
+
 
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
@@ -28,7 +29,7 @@ export default function RootLayout({ children }) {
         </nav>
         
         {children}
-        <TroideyProviderWrapper />
+
 
         <footer style={{
           marginTop: '5rem',
