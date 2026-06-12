@@ -12,21 +12,21 @@ export default function MentionsLegales() {
         <h2 style={{ color: '#fff', marginTop: '2rem', marginBottom: '1rem' }}>1. Éditeur du site</h2>
         <p>Le site internet "Structural Forge" est édité par :</p>
         <ul style={{ paddingLeft: '20px', marginBottom: '1rem', lineHeight: '1.6' }}>
-          <li><strong>Nom / Raison Sociale :</strong> Structural Forge (À REMPLACER)</li>
-          <li><strong>Forme Juridique :</strong> Auto-entreprise / Micro-entreprise (À REMPLACER)</li>
-          <li><strong>Adresse :</strong> [Votre Adresse Postale]</li>
+          <li><strong>Nom / Raison Sociale :</strong> STRUCTURAL FORGE</li>
+          <li><strong>Forme Juridique :</strong> Micro Entreprise</li>
+          <li><strong>Adresse :</strong> 8b rue des nobles, 32380 Saint-Clar</li>
           <li><strong>Téléphone :</strong> [Votre Numéro]</li>
           <li><strong>Email :</strong> structural.forge32@gmail.com</li>
-          <li><strong>Numéro SIRET :</strong> [Votre SIRET]</li>
-          <li><strong>Numéro TVA :</strong> Non assujetti à la TVA selon l'article 293 B du CGI (ou numéro TVA si applicable).</li>
+          <li><strong>Numéro SIRET :</strong> 10251245600017</li>
+          <li><strong>Numéro TVA :</strong> Non assujetti à la TVA selon l'article 293 B du CGI.</li>
         </ul>
 
         <h2 style={{ color: '#fff', marginTop: '2rem', marginBottom: '1rem' }}>2. Hébergement</h2>
         <p>Le site est hébergé par :</p>
         <p>
-          [Exemple : Vercel Inc.]<br/>
-          [440 N Barranca Ave #4133 Covina, CA 91723]<br/>
-          [privacy@vercel.com]
+          Vercel Inc.<br/>
+          440 N Barranca Ave #4133 Covina, CA 91723, USA<br/>
+          https://vercel.com
         </p>
 
         <h2 style={{ color: '#fff', marginTop: '2rem', marginBottom: '1rem' }}>3. Propriété Intellectuelle</h2>
