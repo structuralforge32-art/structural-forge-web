@@ -49,6 +49,15 @@ export async function openDB() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
+      CREATE TABLE IF NOT EXISTS parts (
+        id SERIAL PRIMARY KEY,
+        reference TEXT,
+        name TEXT NOT NULL,
+        price REAL DEFAULT 0,
+        stock INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
       -- Migrations Postgres (au cas où la table existe déjà)
       DO $$
       BEGIN
@@ -155,6 +164,15 @@ export async function openDB() {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         url TEXT NOT NULL,
         caption TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS parts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        reference TEXT,
+        name TEXT NOT NULL,
+        price REAL DEFAULT 0,
+        stock INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
     `);

@@ -616,13 +616,18 @@ export default function AdminDashboard() {
   const [password, setPassword] = useState('');
   const [leads, setLeads] = useState([]);
   const [gallery, setGallery] = useState([]);
+  const [parts, setParts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('leads'); // 'leads' or 'gallery'
+  const [activeTab, setActiveTab] = useState('leads'); // 'leads', 'gallery', or 'parts'
 
   // Gallery states
   const [uploadLoading, setUploadLoading] = useState(false);
   const [newCaption, setNewCaption] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
+
+  // Parts states
+  const [partLoading, setPartLoading] = useState(false);
+  const [newPart, setNewPart] = useState({ reference: '', name: '', price: 0, stock: 0 });
 
   // Authentification simplifiée
   const handleLogin = (e) => {
@@ -631,6 +636,7 @@ export default function AdminDashboard() {
       setIsAuthenticated(true);
       fetchLeads();
       fetchGallery();
+      fetchParts();
     } else {
       alert('Mot de passe incorrect');
     }
@@ -747,6 +753,64 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchParts = async () => {
+    try {
+      const res = await fetch('/api/admin/parts');
+      const data = await res.json();
+      setParts(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const addPart = async (e) => {
+    e.preventDefault();
+    setPartLoading(true);
+    try {
+      const res = await fetch('/api/admin/parts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newPart)
+      });
+      if (res.ok) {
+        setNewPart({ reference: '', name: '', price: 0, stock: 0 });
+        fetchParts();
+        alert('Pièce ajoutée !');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setPartLoading(false);
+    }
+  };
+
+  const deletePart = async (id) => {
+    if (!window.confirm("Supprimer cette pièce de l'inventaire ?")) return;
+    try {
+      const res = await fetch('/api/admin/parts', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      if (res.ok) fetchParts();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const sellPart = async (id) => {
+    try {
+      const res = await fetch('/api/admin/parts', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action: 'sold' })
+      });
+      if (res.ok) fetchParts();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <main className="section-container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -775,7 +839,11 @@ export default function AdminDashboard() {
             Gérez vos demandes et notifiez automatiquement vos clients depuis cette interface.
           </p>
         </div>
-        <button onClick={activeTab === 'leads' ? fetchLeads : fetchGallery} className="neon-button" style={{ padding: '8px 16px', fontSize: '0.8rem' }}>Actualiser</button>
+        <button onClick={() => {
+          if (activeTab === 'leads') fetchLeads();
+          else if (activeTab === 'gallery') fetchGallery();
+          else if (activeTab === 'parts') fetchParts();
+        }} className="neon-button" style={{ padding: '8px 16px', fontSize: '0.8rem' }}>Actualiser</button>
       </div>
 
       {/* Onglets */}
@@ -801,6 +869,17 @@ export default function AdminDashboard() {
           }}
         >
           🖼 Gestion Galerie
+        </button>
+        <button
+          onClick={() => setActiveTab('parts')}
+          style={{
+            background: activeTab === 'parts' ? 'var(--neon-blue)' : 'transparent',
+            color: activeTab === 'parts' ? '#000' : '#fff',
+            border: activeTab === 'parts' ? '1px solid var(--neon-blue)' : '1px solid var(--glass-border)',
+            padding: '8px 20px', borderRadius: '4px', cursor: 'pointer', transition: '0.3s', fontWeight: 'bold'
+          }}
+        >
+          🛠 Pièces d'occasion
         </button>
       </div>
 
@@ -838,7 +917,7 @@ export default function AdminDashboard() {
             </tbody>
           </table>
         </div>
-      ) : (
+      ) : activeTab === 'gallery' ? (
         <div className="glass-panel">
           <h3 className="mb-4">Importer une nouvelle réalisation</h3>
           <form onSubmit={uploadImage} style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', marginBottom: '3rem', padding: '1.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
@@ -887,6 +966,119 @@ export default function AdminDashboard() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      ) : (
+        <div className="glass-panel">
+          <h3 className="mb-4">Ajouter une pièce d'occasion</h3>
+          <form onSubmit={addPart} style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', marginBottom: '3rem', padding: '1.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+            <div style={{ flex: 1, minWidth: '150px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Référence</label>
+              <input
+                type="text"
+                value={newPart.reference}
+                onChange={(e) => setNewPart({ ...newPart, reference: e.target.value })}
+                placeholder="Ex: P-102"
+                className="form-input"
+              />
+            </div>
+            <div style={{ flex: 2, minWidth: '200px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Nom de la pièce</label>
+              <input
+                type="text"
+                value={newPart.name}
+                onChange={(e) => setNewPart({ ...newPart, name: e.target.value })}
+                placeholder="Ex: Support Moteur"
+                className="form-input"
+                required
+              />
+            </div>
+            <div style={{ width: '120px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Prix (€)</label>
+              <input
+                type="number"
+                value={newPart.price}
+                onChange={(e) => setNewPart({ ...newPart, price: e.target.value })}
+                className="form-input"
+                required
+              />
+            </div>
+            <div style={{ width: '100px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Stock</label>
+              <input
+                type="number"
+                value={newPart.stock}
+                onChange={(e) => setNewPart({ ...newPart, stock: e.target.value })}
+                className="form-input"
+                required
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+              <button type="submit" disabled={partLoading} className="neon-button" style={{ height: '45px' }}>
+                {partLoading ? 'Ajout...' : '➕ Ajouter'}
+              </button>
+            </div>
+          </form>
+
+          <h3 className="mb-4">Inventaire des pièces</h3>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', overflow: 'hidden' }}>
+              <thead style={{ background: 'rgba(255,255,255,0.05)', textAlign: 'left' }}>
+                <tr>
+                  <th style={{ padding: '12px' }}>Réf.</th>
+                  <th style={{ padding: '12px' }}>Nom</th>
+                  <th style={{ padding: '12px' }}>Prix</th>
+                  <th style={{ padding: '12px' }}>Stock</th>
+                  <th style={{ padding: '12px', textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {parts.length === 0 && (
+                  <tr>
+                    <td colSpan="5" style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>Aucune pièce en stock.</td>
+                  </tr>
+                )}
+                {parts.map(part => (
+                  <tr key={part.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <td style={{ padding: '12px', color: 'var(--neon-blue)', fontWeight: 'bold' }}>{part.reference || '-'}</td>
+                    <td style={{ padding: '12px' }}>{part.name}</td>
+                    <td style={{ padding: '12px' }}>{part.price}€</td>
+                    <td style={{ padding: '12px' }}>
+                      <span style={{ 
+                        padding: '2px 8px', borderRadius: '10px', 
+                        background: part.stock > 0 ? 'rgba(0,255,100,0.1)' : 'rgba(255,0,0,0.1)',
+                        color: part.stock > 0 ? '#00ff66' : '#ff4444',
+                        fontSize: '0.85rem'
+                      }}>
+                        {part.stock} en stock
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                      <button 
+                        onClick={() => sellPart(part.id)}
+                        disabled={part.stock <= 0}
+                        style={{ 
+                          padding: '6px 12px', background: 'rgba(0,255,100,0.2)', color: '#00ff66', 
+                          border: '1px solid #00ff66', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem',
+                          opacity: part.stock <= 0 ? 0.3 : 1
+                        }}
+                      >
+                        Vendu
+                      </button>
+                      <button 
+                        onClick={() => deletePart(part.id)}
+                        style={{ 
+                          padding: '6px', background: 'rgba(255,0,0,0.1)', color: '#ff4444', 
+                          border: '1px solid #ff4444', borderRadius: '4px', cursor: 'pointer'
+                        }}
+                      >
+                        🗑
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
