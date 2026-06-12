@@ -36,14 +36,15 @@ export async function POST(req) {
 export async function PUT(req) {
   try {
     const { id, reference, name, price, stock, action } = await req.json();
+    const partId = Number(id);
 
-    if (!id) return NextResponse.json({ error: 'ID manquant' }, { status: 400 });
+    if (!id || isNaN(partId)) return NextResponse.json({ error: 'ID manquant ou invalide' }, { status: 400 });
 
     const db = await openDB();
 
     if (action === 'sold') {
-      // Decrement stock by 1
-      await db.run('UPDATE parts SET stock = MAX(0, stock - 1) WHERE id = ?', [id]);
+      // Decrement stock by 1 (Universal SQL logic)
+      await db.run('UPDATE parts SET stock = CASE WHEN stock > 0 THEN stock - 1 ELSE 0 END WHERE id = ?', [partId]);
     } else {
       // General update
       const updateFields = [];
