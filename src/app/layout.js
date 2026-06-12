@@ -1,7 +1,7 @@
-"use client";
+
 import { Orbitron, Inter } from 'next/font/google'
-import TroideyWrapper from '@/components/TroideyWrapper'
-import { usePathname } from 'next/navigation'
+import TroideyProviderWrapper from '@/components/TroideyProviderWrapper'
+
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const orbitron = Orbitron({ subsets: ['latin'], variable: '--font-orbitron' })
@@ -27,7 +27,8 @@ export default function RootLayout({ children }) {
           </div>
         </nav>
         
-              <TroideyWrapper />
+        {children}
+        <TroideyProviderWrapper />
 
         <footer style={{
           marginTop: '5rem',
