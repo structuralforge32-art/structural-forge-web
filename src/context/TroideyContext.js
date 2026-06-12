@@ -1,4 +1,5 @@
-import { createContext, useState, useCallback } from 'react';
+"use client";
+import React, { createContext, useState, useCallback } from 'react';
 
 export const TroideyContext = createContext({
   muted: false,

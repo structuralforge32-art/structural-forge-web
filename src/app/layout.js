@@ -1,4 +1,4 @@
-import './globals.css'
+"use client";
 import { Orbitron, Inter } from 'next/font/google'
 import TroideyWrapper from '@/components/TroideyWrapper'
 import { usePathname } from 'next/navigation'
