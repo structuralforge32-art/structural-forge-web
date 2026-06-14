@@ -33,7 +33,8 @@ export async function POST(req) {
       slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
     }
 
-    const processFile = async (f) => {
+    const processFile = async (f, b64) => {
+      if (b64) return b64;
       if (f && f.size > 0) {
         const arrayBuffer = await f.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
@@ -42,10 +43,10 @@ export async function POST(req) {
       return null;
     };
 
-    const dataUrl = await processFile(file);
-    const problemImg = await processFile(problem_file);
-    const engImg = await processFile(engineering_file);
-    const resultImg = await processFile(result_file);
+    const dataUrl = await processFile(file, formData.get('file_b64'));
+    const problemImg = await processFile(problem_file, formData.get('problem_file_b64'));
+    const engImg = await processFile(engineering_file, formData.get('engineering_file_b64'));
+    const resultImg = await processFile(result_file, formData.get('result_file_b64'));
 
     const db = await openDB();
     await db.run(
@@ -83,7 +84,8 @@ export async function PUT(req) {
       slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
     }
 
-    const processFile = async (f) => {
+    const processFile = async (f, b64) => {
+      if (b64) return b64;
       if (f && f.size > 0) {
         const arrayBuffer = await f.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
@@ -92,10 +94,10 @@ export async function PUT(req) {
       return null;
     };
 
-    const dataUrl = await processFile(file);
-    const problemImg = await processFile(problem_file);
-    const engImg = await processFile(engineering_file);
-    const resultImg = await processFile(result_file);
+    const dataUrl = await processFile(file, formData.get('file_b64'));
+    const problemImg = await processFile(problem_file, formData.get('problem_file_b64'));
+    const engImg = await processFile(engineering_file, formData.get('engineering_file_b64'));
+    const resultImg = await processFile(result_file, formData.get('result_file_b64'));
 
     const db = await openDB();
     
