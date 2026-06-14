@@ -21,29 +21,36 @@ export async function POST(req) {
     const engineering_text = formData.get('engineering_text') || '';
     const result_text = formData.get('result_text') || '';
     const file = formData.get('file');
+    const problem_file = formData.get('problem_file');
+    const engineering_file = formData.get('engineering_file');
+    const result_file = formData.get('result_file');
 
     if (!title) {
       return NextResponse.json({ error: 'Le titre est obligatoire' }, { status: 400 });
     }
 
     if (!slug) {
-      // Generate slug from title if not provided
       slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
     }
 
-    let dataUrl = null;
-    if (file && file.size > 0) {
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      const base64Content = buffer.toString('base64');
-      const mimeType = file.type || 'image/jpeg';
-      dataUrl = `data:${mimeType};base64,${base64Content}`;
-    }
+    const processFile = async (f) => {
+      if (f && f.size > 0) {
+        const arrayBuffer = await f.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        return `data:${f.type || 'image/jpeg'};base64,${buffer.toString('base64')}`;
+      }
+      return null;
+    };
+
+    const dataUrl = await processFile(file);
+    const problemImg = await processFile(problem_file);
+    const engImg = await processFile(engineering_file);
+    const resultImg = await processFile(result_file);
 
     const db = await openDB();
     await db.run(
-      'INSERT INTO etudes_de_cas (title, slug, image_url, problem_text, engineering_text, result_text) VALUES (?, ?, ?, ?, ?, ?)',
-      [title, slug, dataUrl, problem_text, engineering_text, result_text]
+      'INSERT INTO etudes_de_cas (title, slug, image_url, problem_text, engineering_text, result_text, problem_image, engineering_image, result_image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [title, slug, dataUrl, problem_text, engineering_text, result_text, problemImg, engImg, resultImg]
     );
 
     return NextResponse.json({ success: true });
@@ -62,7 +69,11 @@ export async function PUT(req) {
     const problem_text = formData.get('problem_text') || '';
     const engineering_text = formData.get('engineering_text') || '';
     const result_text = formData.get('result_text') || '';
+    
     const file = formData.get('file');
+    const problem_file = formData.get('problem_file');
+    const engineering_file = formData.get('engineering_file');
+    const result_file = formData.get('result_file');
 
     if (!id || !title) {
       return NextResponse.json({ error: 'ID et Titre obligatoires' }, { status: 400 });
@@ -72,26 +83,37 @@ export async function PUT(req) {
       slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
     }
 
+    const processFile = async (f) => {
+      if (f && f.size > 0) {
+        const arrayBuffer = await f.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        return `data:${f.type || 'image/jpeg'};base64,${buffer.toString('base64')}`;
+      }
+      return null;
+    };
+
+    const dataUrl = await processFile(file);
+    const problemImg = await processFile(problem_file);
+    const engImg = await processFile(engineering_file);
+    const resultImg = await processFile(result_file);
+
     const db = await openDB();
     
-    if (file && file.size > 0) {
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      const base64Content = buffer.toString('base64');
-      const mimeType = file.type || 'image/jpeg';
-      const dataUrl = `data:${mimeType};base64,${base64Content}`;
-      
-      await db.run(
-        'UPDATE etudes_de_cas SET title=?, slug=?, image_url=?, problem_text=?, engineering_text=?, result_text=? WHERE id=?',
-        [title, slug, dataUrl, problem_text, engineering_text, result_text, id]
-      );
-    } else {
-      // Don't update image if not provided
-      await db.run(
-        'UPDATE etudes_de_cas SET title=?, slug=?, problem_text=?, engineering_text=?, result_text=? WHERE id=?',
-        [title, slug, problem_text, engineering_text, result_text, id]
-      );
-    }
+    // Pour l'UPDATE, on ne met à jour l'image que si un nouveau fichier est fourni
+    const updates = ['title=?', 'slug=?', 'problem_text=?', 'engineering_text=?', 'result_text=?'];
+    const params = [title, slug, problem_text, engineering_text, result_text];
+
+    if (dataUrl) { updates.push('image_url=?'); params.push(dataUrl); }
+    if (problemImg) { updates.push('problem_image=?'); params.push(problemImg); }
+    if (engImg) { updates.push('engineering_image=?'); params.push(engImg); }
+    if (resultImg) { updates.push('result_image=?'); params.push(resultImg); }
+
+    params.push(id); // pour le WHERE id=?
+
+    await db.run(
+      `UPDATE etudes_de_cas SET ${updates.join(', ')} WHERE id=?`,
+      params
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {

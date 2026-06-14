@@ -4,8 +4,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 export async function generateMetadata({ params }) {
+  const { slug } = await params;
   const db = await openDB();
-  const etudes = await db.all('SELECT * FROM etudes_de_cas WHERE slug = ?', [params.slug]);
+  const etudes = await db.all('SELECT * FROM etudes_de_cas WHERE slug = ?', [slug]);
   const etude = etudes[0];
   
   if (!etude) {
@@ -19,8 +20,9 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function EtudeDeCasDetail({ params }) {
+  const { slug } = await params;
   const db = await openDB();
-  const etudes = await db.all('SELECT * FROM etudes_de_cas WHERE slug = ?', [params.slug]);
+  const etudes = await db.all('SELECT * FROM etudes_de_cas WHERE slug = ?', [slug]);
   const etude = etudes[0];
 
   if (!etude) {
@@ -59,9 +61,14 @@ export default async function EtudeDeCasDetail({ params }) {
             <h2 style={{ fontSize: '1.8rem', color: '#fff', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ color: '#ff4444' }}>🛑</span> Le Problème
             </h2>
-            <div style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', lineHeight: '1.8', whiteSpace: 'pre-wrap', marginBottom: '2rem' }}>
               {etude.problem_text}
             </div>
+            {etude.problem_image && (
+              <div style={{ position: 'relative', aspectRatio: '16/9', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--glass-border)' }}>
+                <Image src={etude.problem_image} alt="Le problème" fill style={{ objectFit: 'cover' }} />
+              </div>
+            )}
           </section>
         )}
 
@@ -70,9 +77,14 @@ export default async function EtudeDeCasDetail({ params }) {
             <h2 style={{ fontSize: '1.8rem', color: '#fff', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ color: 'var(--neon-blue)' }}>⚙️</span> Notre Ingénierie
             </h2>
-            <div style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', lineHeight: '1.8', whiteSpace: 'pre-wrap', marginBottom: '2rem' }}>
               {etude.engineering_text}
             </div>
+            {etude.engineering_image && (
+              <div style={{ position: 'relative', aspectRatio: '16/9', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--glass-border)' }}>
+                <Image src={etude.engineering_image} alt="L'ingénierie" fill style={{ objectFit: 'cover' }} />
+              </div>
+            )}
           </section>
         )}
 
@@ -81,9 +93,14 @@ export default async function EtudeDeCasDetail({ params }) {
             <h2 style={{ fontSize: '1.8rem', color: '#fff', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ color: '#00ff66' }}>✅</span> Le Résultat Final
             </h2>
-            <div style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', lineHeight: '1.8', whiteSpace: 'pre-wrap', marginBottom: '2rem' }}>
               {etude.result_text}
             </div>
+            {etude.result_image && (
+              <div style={{ position: 'relative', aspectRatio: '16/9', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--glass-border)' }}>
+                <Image src={etude.result_image} alt="Le résultat" fill style={{ objectFit: 'cover' }} />
+              </div>
+            )}
           </section>
         )}
 

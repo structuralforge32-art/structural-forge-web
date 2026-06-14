@@ -636,9 +636,16 @@ export default function AdminDashboard() {
   const [etudeLoading, setEtudeLoading] = useState(false);
   const [newEtude, setNewEtude] = useState({ title: '', problem_text: '', engineering_text: '', result_text: '' });
   const [selectedEtudeFile, setSelectedEtudeFile] = useState(null);
+  const [selectedProblemFile, setSelectedProblemFile] = useState(null);
+  const [selectedEngFile, setSelectedEngFile] = useState(null);
+  const [selectedResultFile, setSelectedResultFile] = useState(null);
+
   const [editingEtudeId, setEditingEtudeId] = useState(null);
   const [editingEtudeData, setEditingEtudeData] = useState({ title: '', problem_text: '', engineering_text: '', result_text: '' });
   const [selectedEditEtudeFile, setSelectedEditEtudeFile] = useState(null);
+  const [selectedEditProblemFile, setSelectedEditProblemFile] = useState(null);
+  const [selectedEditEngFile, setSelectedEditEngFile] = useState(null);
+  const [selectedEditResultFile, setSelectedEditResultFile] = useState(null);
 
   // Authentification simplifiée
   const handleLogin = (e) => {
@@ -884,9 +891,10 @@ export default function AdminDashboard() {
       formData.append('problem_text', newEtude.problem_text);
       formData.append('engineering_text', newEtude.engineering_text);
       formData.append('result_text', newEtude.result_text);
-      if (selectedEtudeFile) {
-        formData.append('file', selectedEtudeFile);
-      }
+      if (selectedEtudeFile) formData.append('file', selectedEtudeFile);
+      if (selectedProblemFile) formData.append('problem_file', selectedProblemFile);
+      if (selectedEngFile) formData.append('engineering_file', selectedEngFile);
+      if (selectedResultFile) formData.append('result_file', selectedResultFile);
 
       const res = await fetch('/api/admin/etudes-de-cas', {
         method: 'POST',
@@ -896,6 +904,9 @@ export default function AdminDashboard() {
       if (res.ok) {
         setNewEtude({ title: '', problem_text: '', engineering_text: '', result_text: '' });
         setSelectedEtudeFile(null);
+        setSelectedProblemFile(null);
+        setSelectedEngFile(null);
+        setSelectedResultFile(null);
         e.target.reset();
         fetchEtudes();
         alert('Étude de cas ajoutée !');
@@ -932,6 +943,9 @@ export default function AdminDashboard() {
       result_text: etude.result_text || ''
     });
     setSelectedEditEtudeFile(null);
+    setSelectedEditProblemFile(null);
+    setSelectedEditEngFile(null);
+    setSelectedEditResultFile(null);
   };
 
   const cancelEditingEtude = () => {
@@ -946,9 +960,10 @@ export default function AdminDashboard() {
       formData.append('problem_text', editingEtudeData.problem_text);
       formData.append('engineering_text', editingEtudeData.engineering_text);
       formData.append('result_text', editingEtudeData.result_text);
-      if (selectedEditEtudeFile) {
-        formData.append('file', selectedEditEtudeFile);
-      }
+      if (selectedEditEtudeFile) formData.append('file', selectedEditEtudeFile);
+      if (selectedEditProblemFile) formData.append('problem_file', selectedEditProblemFile);
+      if (selectedEditEngFile) formData.append('engineering_file', selectedEditEngFile);
+      if (selectedEditResultFile) formData.append('result_file', selectedEditResultFile);
 
       const res = await fetch('/api/admin/etudes-de-cas', {
         method: 'PUT',
@@ -1400,15 +1415,21 @@ export default function AdminDashboard() {
             <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
               <div style={{ flex: 1, minWidth: '250px' }}>
                 <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Le Problème</label>
-                <textarea value={newEtude.problem_text} onChange={e => setNewEtude({...newEtude, problem_text: e.target.value})} className="form-input" style={{ minHeight: '80px' }} />
+                <textarea value={newEtude.problem_text} onChange={e => setNewEtude({...newEtude, problem_text: e.target.value})} className="form-input" style={{ minHeight: '80px', marginBottom: '10px' }} />
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Photo Problème</label>
+                <input type="file" accept="image/*" onChange={e => setSelectedProblemFile(e.target.files[0])} className="form-input" />
               </div>
               <div style={{ flex: 1, minWidth: '250px' }}>
                 <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Notre Ingénierie (La Solution)</label>
-                <textarea value={newEtude.engineering_text} onChange={e => setNewEtude({...newEtude, engineering_text: e.target.value})} className="form-input" style={{ minHeight: '80px' }} />
+                <textarea value={newEtude.engineering_text} onChange={e => setNewEtude({...newEtude, engineering_text: e.target.value})} className="form-input" style={{ minHeight: '80px', marginBottom: '10px' }} />
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Photo Ingénierie</label>
+                <input type="file" accept="image/*" onChange={e => setSelectedEngFile(e.target.files[0])} className="form-input" />
               </div>
               <div style={{ flex: 1, minWidth: '250px' }}>
                 <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Le Résultat</label>
-                <textarea value={newEtude.result_text} onChange={e => setNewEtude({...newEtude, result_text: e.target.value})} className="form-input" style={{ minHeight: '80px' }} />
+                <textarea value={newEtude.result_text} onChange={e => setNewEtude({...newEtude, result_text: e.target.value})} className="form-input" style={{ minHeight: '80px', marginBottom: '10px' }} />
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Photo Résultat</label>
+                <input type="file" accept="image/*" onChange={e => setSelectedResultFile(e.target.files[0])} className="form-input" />
               </div>
             </div>
 
@@ -1428,8 +1449,18 @@ export default function AdminDashboard() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <input type="text" value={editingEtudeData.title} onChange={e => setEditingEtudeData({...editingEtudeData, title: e.target.value})} className="form-input" placeholder="Titre" />
                     <textarea value={editingEtudeData.problem_text} onChange={e => setEditingEtudeData({...editingEtudeData, problem_text: e.target.value})} className="form-input" placeholder="Problème" style={{ minHeight: '60px' }} />
+                    <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Nouvelle photo Problème</label>
+                    <input type="file" accept="image/*" onChange={e => setSelectedEditProblemFile(e.target.files[0])} className="form-input" />
+                    
                     <textarea value={editingEtudeData.engineering_text} onChange={e => setEditingEtudeData({...editingEtudeData, engineering_text: e.target.value})} className="form-input" placeholder="Ingénierie" style={{ minHeight: '60px' }} />
+                    <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Nouvelle photo Ingénierie</label>
+                    <input type="file" accept="image/*" onChange={e => setSelectedEditEngFile(e.target.files[0])} className="form-input" />
+                    
                     <textarea value={editingEtudeData.result_text} onChange={e => setEditingEtudeData({...editingEtudeData, result_text: e.target.value})} className="form-input" placeholder="Résultat" style={{ minHeight: '60px' }} />
+                    <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Nouvelle photo Résultat</label>
+                    <input type="file" accept="image/*" onChange={e => setSelectedEditResultFile(e.target.files[0])} className="form-input" />
+                    
+                    <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Nouvelle photo Principale</label>
                     <input type="file" accept="image/*" onChange={e => setSelectedEditEtudeFile(e.target.files[0])} className="form-input" />
                     
                     <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
