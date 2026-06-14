@@ -14,7 +14,9 @@ export default function Home() {
         <p className="hero-subtitle">
           Donnez vie à vos idées. Nous concevons et imprimons en 3D vos pièces sur mesure avec une précision absolue, pour les professionnels et les particuliers.
         </p>
-        <div>
+        <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <a href="/etudes-de-cas" className="neon-button">Du problème à la solution</a>
+          <a href="/realisations" className="neon-button">Réalisations</a>
           <a href="#contact" className="neon-button">Obtenir un devis</a>
         </div>
       </section>
