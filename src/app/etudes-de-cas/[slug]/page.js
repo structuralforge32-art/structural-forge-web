@@ -34,7 +34,7 @@ export default async function EtudeDeCasDetail({ params }) {
       
       <div style={{ maxWidth: '800px', margin: '0 auto', marginBottom: '3rem' }}>
         <Link href="/etudes-de-cas" style={{ color: 'var(--text-secondary)', textDecoration: 'none', display: 'inline-block', marginBottom: '2rem', fontSize: '0.9rem' }}>
-          ← Retour aux études de cas
+          ← Retour
         </Link>
         <h1 className="neon-text" style={{ fontSize: '2.5rem', marginBottom: '1rem', lineHeight: '1.2' }}>{etude.title}</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>

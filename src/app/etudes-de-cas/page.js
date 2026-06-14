@@ -25,10 +25,9 @@ export default function EtudesDeCasList() {
   return (
     <main className="section-container" style={{ paddingTop: '8rem', minHeight: '100vh' }}>
       <div className="text-center" style={{ marginBottom: '4rem' }}>
-        <h1 className="neon-text" style={{ fontSize: '3rem', marginBottom: '1rem' }}>Études de Cas</h1>
+        <h1 className="neon-text" style={{ fontSize: '3rem', marginBottom: '1rem' }}>Du problème à la solution</h1>
         <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto', fontSize: '1.1rem', lineHeight: '1.6' }}>
-          Découvrez comment nous avons résolu des problèmes d'ingénierie complexes grâce à l'impression 3D. 
-          Du besoin initial jusqu'à la pièce finale fonctionnelle.
+          Découvrez comment nous avons transformé les défis de nos clients en solutions concrètes grâce à l'impression 3D.
         </p>
       </div>
 

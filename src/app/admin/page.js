@@ -1105,7 +1105,7 @@ export default function AdminDashboard() {
             padding: '8px 20px', borderRadius: '4px', cursor: 'pointer', transition: '0.3s', fontWeight: 'bold'
           }}
         >
-          📝 Études de cas
+          📄 Du problème à la solution
         </button>
       </div>
 
@@ -1441,7 +1441,7 @@ export default function AdminDashboard() {
         </div>
       ) : activeTab === 'etudes' ? (
         <div className="glass-panel">
-          <h3 className="mb-4">Ajouter une Étude de cas</h3>
+          <h3 className="mb-4">Ajouter un cas : du problème à la solution</h3>
           <form onSubmit={addEtude} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '3rem', padding: '1.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
             <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
               <div style={{ flex: 1, minWidth: '200px' }}>
@@ -1482,10 +1482,9 @@ export default function AdminDashboard() {
             </div>
           </form>
 
-          <h3 className="mb-4">Études de cas existantes</h3>
+          <h3 className="mb-4" style={{ marginTop: '2rem' }}>Cas existants</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-            {etudes.length === 0 && <p style={{ color: 'var(--text-secondary)' }}>Aucune étude de cas.</p>}
-            {etudes.map(etude => (
+            {etudeLoading ? <p>Chargement...</p> : etudes.length === 0 ? <p style={{ color: 'var(--text-secondary)' }}>Aucun cas.</p> : etudes.map(etude => (
               <div key={etude.id} style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.3)', padding: '15px' }}>
                 {editingEtudeId === etude.id ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
