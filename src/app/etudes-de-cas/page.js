@@ -62,9 +62,9 @@ export default function EtudesDeCasList() {
               }}
               className="gallery-item"
               >
-                <div style={{ position: 'relative', height: '200px', width: '100%' }}>
+                <div style={{ position: 'relative', aspectRatio: '16/9', width: '100%' }}>
                   {etude.image_url ? (
-                    <Image src={etude.image_url} alt={etude.title} fill style={{ objectFit: 'cover' }} />
+                    <Image src={etude.image_url} alt={etude.title} fill style={{ objectFit: 'contain', backgroundColor: 'rgba(0,0,0,0.8)' }} />
                   ) : (
                     <div style={{ width: '100%', height: '100%', background: 'rgba(0, 229, 255, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <span style={{ color: 'var(--neon-blue)', fontSize: '2rem' }}>🔧</span>
