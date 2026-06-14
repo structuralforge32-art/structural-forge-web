@@ -1137,7 +1137,7 @@ export default function AdminDashboard() {
             ))}
           </div>
         </div>
-      ) : (
+      ) : activeTab === 'parts' ? (
         <div className="glass-panel">
           <h3 className="mb-4">Ajouter une pièce d'occasion</h3>
           <form onSubmit={addPart} style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', marginBottom: '3rem', padding: '1.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
@@ -1456,7 +1456,7 @@ export default function AdminDashboard() {
             ))}
           </div>
         </div>
-      )}
+      ) : null}
     </main>
   );
 }
