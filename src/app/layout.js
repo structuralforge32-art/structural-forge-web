@@ -22,10 +22,10 @@ export default function RootLayout({ children }) {
           <a href="/" className="navbar-brand">
             <span className="neon-text">STRUCTURAL</span> FORGE
           </a>
-          <div>
-            <a href="/etudes-de-cas" className="nav-link">Du problème à la solution</a>
-            <a href="/realisations" className="nav-link">Réalisations</a>
-            <a href="/#contact" className="header-button">Demander un devis</a>
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+            <a href="/etudes-de-cas" className="neon-button" style={{padding: '8px 20px', fontSize: '0.85rem'}}>Du problème à la solution</a>
+            <a href="/realisations" className="neon-button" style={{padding: '8px 20px', fontSize: '0.85rem'}}>Réalisations</a>
+            <a href="/#contact" className="neon-button" style={{padding: '8px 20px', fontSize: '0.85rem'}}>Demander un devis</a>
           </div>
         </nav>
         
