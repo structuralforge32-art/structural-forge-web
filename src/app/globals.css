@@ -69,6 +69,43 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateY(-2px);
 }
 
+.header-button {
+  display: inline-block;
+  background: var(--neon-blue);
+  color: #050510;
+  border: 1px solid var(--neon-blue);
+  padding: 10px 24px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+}
+
+.header-button:hover {
+  background: transparent;
+  color: var(--neon-blue);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.6), inset 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
+.nav-link {
+  color: #fff;
+  text-decoration: none;
+  margin-right: 30px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.nav-link:hover {
+  color: var(--neon-blue);
+  text-shadow: 0 0 10px var(--neon-blue-glow);
+}
+
 .form-group {
   margin-bottom: 1.5rem;
 }
