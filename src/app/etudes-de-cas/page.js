@@ -62,20 +62,30 @@ export default function EtudesDeCasList() {
               }}
               className="gallery-item"
               >
-                {etude.image_url ? (
-                  <div style={{ position: 'relative', aspectRatio: '16/9', width: '100%' }}>
-                    <Image 
-                      src={etude.image_url} 
-                      alt={etude.title}
-                      fill
-                      style={{ objectFit: 'cover' }}
-                    />
+                <div style={{ position: 'relative', height: '200px', width: '100%' }}>
+                  {etude.image_url ? (
+                    <Image src={etude.image_url} alt={etude.title} fill style={{ objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', background: 'rgba(0, 229, 255, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ color: 'var(--neon-blue)', fontSize: '2rem' }}>🔧</span>
+                    </div>
+                  )}
+                  {/* Badge Status */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    padding: '4px 12px',
+                    borderRadius: '20px',
+                    fontSize: '0.75rem',
+                    fontWeight: 'bold',
+                    background: etude.status === 'en_cours' ? 'rgba(255, 165, 0, 0.8)' : 'rgba(0, 255, 102, 0.8)',
+                    color: '#111',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.5)'
+                  }}>
+                    {etude.status === 'en_cours' ? '⏳ En cours' : '✅ Résolu'}
                   </div>
-                ) : (
-                  <div style={{ aspectRatio: '16/9', width: '100%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
-                    Pas d'image d'illustration
-                  </div>
-                )}
+                </div>  
                 
                 <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
                   <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.3rem', color: '#fff' }}>{etude.title}</h3>

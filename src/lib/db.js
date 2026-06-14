@@ -70,6 +70,7 @@ export async function openDB() {
         problem_image TEXT,
         engineering_image TEXT,
         result_image TEXT,
+        status TEXT DEFAULT 'resolu',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -116,6 +117,9 @@ export async function openDB() {
           ALTER TABLE etudes_de_cas ADD COLUMN problem_image TEXT;
           ALTER TABLE etudes_de_cas ADD COLUMN engineering_image TEXT;
           ALTER TABLE etudes_de_cas ADD COLUMN result_image TEXT;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='etudes_de_cas' AND column_name='status') THEN
+          ALTER TABLE etudes_de_cas ADD COLUMN status TEXT DEFAULT 'resolu';
         END IF;
       END $$;
     `);
@@ -211,6 +215,7 @@ export async function openDB() {
         problem_image TEXT,
         engineering_image TEXT,
         result_image TEXT,
+        status TEXT DEFAULT 'resolu',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -219,6 +224,7 @@ export async function openDB() {
     try { await localDb.exec("ALTER TABLE etudes_de_cas ADD COLUMN problem_image TEXT"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE etudes_de_cas ADD COLUMN engineering_image TEXT"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE etudes_de_cas ADD COLUMN result_image TEXT"); } catch (e) {}
+    try { await localDb.exec("ALTER TABLE etudes_de_cas ADD COLUMN status TEXT DEFAULT 'resolu'"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN history TEXT DEFAULT '{}'"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN admin_notes TEXT DEFAULT ''"); } catch (e) {}
     try { await localDb.exec("ALTER TABLE leads ADD COLUMN internal_notes TEXT DEFAULT ''"); } catch (e) {}

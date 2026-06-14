@@ -37,8 +37,24 @@ export default async function EtudeDeCasDetail({ params }) {
           ← Retour
         </Link>
         <h1 className="neon-text" style={{ fontSize: '2.5rem', marginBottom: '1rem', lineHeight: '1.2' }}>{etude.title}</h1>
+        
+        <div style={{ marginBottom: '2rem' }}>
+          <span style={{
+            display: 'inline-block',
+            padding: '6px 16px',
+            borderRadius: '20px',
+            fontSize: '0.9rem',
+            fontWeight: 'bold',
+            background: etude.status === 'en_cours' ? 'rgba(255, 165, 0, 0.1)' : 'rgba(0, 255, 102, 0.1)',
+            color: etude.status === 'en_cours' ? '#FFA500' : '#00FF66',
+            border: `1px solid ${etude.status === 'en_cours' ? '#FFA500' : '#00FF66'}`
+          }}>
+            {etude.status === 'en_cours' ? '⏳ En cours de résolution' : '✅ Problème résolu'}
+          </span>
+        </div>
+
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-          Publié le {new Date(etude.created_at).toLocaleDateString('fr-FR')}
+          Publié le {new Date(etude.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
         </p>
       </div>
 

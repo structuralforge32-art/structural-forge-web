@@ -20,6 +20,7 @@ export async function POST(req) {
     const problem_text = formData.get('problem_text') || '';
     const engineering_text = formData.get('engineering_text') || '';
     const result_text = formData.get('result_text') || '';
+    const status = formData.get('status') || 'resolu';
     const file = formData.get('file');
     const problem_file = formData.get('problem_file');
     const engineering_file = formData.get('engineering_file');
@@ -50,8 +51,8 @@ export async function POST(req) {
 
     const db = await openDB();
     await db.run(
-      'INSERT INTO etudes_de_cas (title, slug, image_url, problem_text, engineering_text, result_text, problem_image, engineering_image, result_image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [title, slug, dataUrl, problem_text, engineering_text, result_text, problemImg, engImg, resultImg]
+      'INSERT INTO etudes_de_cas (title, slug, image_url, problem_text, engineering_text, result_text, problem_image, engineering_image, result_image, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [title, slug, dataUrl, problem_text, engineering_text, result_text, problemImg, engImg, resultImg, status]
     );
 
     return NextResponse.json({ success: true });
@@ -70,6 +71,7 @@ export async function PUT(req) {
     const problem_text = formData.get('problem_text') || '';
     const engineering_text = formData.get('engineering_text') || '';
     const result_text = formData.get('result_text') || '';
+    const status = formData.get('status') || 'resolu';
     
     const file = formData.get('file');
     const problem_file = formData.get('problem_file');
@@ -102,8 +104,8 @@ export async function PUT(req) {
     const db = await openDB();
     
     // Pour l'UPDATE, on ne met à jour l'image que si un nouveau fichier est fourni
-    const updates = ['title=?', 'slug=?', 'problem_text=?', 'engineering_text=?', 'result_text=?'];
-    const params = [title, slug, problem_text, engineering_text, result_text];
+    const updates = ['title=?', 'slug=?', 'problem_text=?', 'engineering_text=?', 'result_text=?', 'status=?'];
+    const params = [title, slug, problem_text, engineering_text, result_text, status];
 
     if (dataUrl) { updates.push('image_url=?'); params.push(dataUrl); }
     if (problemImg) { updates.push('problem_image=?'); params.push(problemImg); }
