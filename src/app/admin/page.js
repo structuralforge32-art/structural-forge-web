@@ -891,10 +891,28 @@ export default function AdminDashboard() {
       formData.append('problem_text', newEtude.problem_text);
       formData.append('engineering_text', newEtude.engineering_text);
       formData.append('result_text', newEtude.result_text);
-      if (selectedEtudeFile) formData.append('file', selectedEtudeFile);
-      if (selectedProblemFile) formData.append('problem_file', selectedProblemFile);
-      if (selectedEngFile) formData.append('engineering_file', selectedEngFile);
-      if (selectedResultFile) formData.append('result_file', selectedResultFile);
+      const fileToBase64 = (file) => new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+
+      if (selectedEtudeFile) {
+        const b64 = await fileToBase64(selectedEtudeFile);
+        formData.append('file_b64', await compressImage(b64));
+      }
+      if (selectedProblemFile) {
+        const b64 = await fileToBase64(selectedProblemFile);
+        formData.append('problem_file_b64', await compressImage(b64));
+      }
+      if (selectedEngFile) {
+        const b64 = await fileToBase64(selectedEngFile);
+        formData.append('engineering_file_b64', await compressImage(b64));
+      }
+      if (selectedResultFile) {
+        const b64 = await fileToBase64(selectedResultFile);
+        formData.append('result_file_b64', await compressImage(b64));
+      }
 
       const res = await fetch('/api/admin/etudes-de-cas', {
         method: 'POST',
@@ -911,7 +929,8 @@ export default function AdminDashboard() {
         fetchEtudes();
         alert('Étude de cas ajoutée !');
       } else {
-        alert('Erreur lors de l\'ajout');
+        const resData = await res.json();
+        alert('Erreur lors de l\'ajout : ' + (resData.error || '') + ' ' + (resData.details || ''));
       }
     } catch (err) {
       console.error(err);
@@ -960,10 +979,28 @@ export default function AdminDashboard() {
       formData.append('problem_text', editingEtudeData.problem_text);
       formData.append('engineering_text', editingEtudeData.engineering_text);
       formData.append('result_text', editingEtudeData.result_text);
-      if (selectedEditEtudeFile) formData.append('file', selectedEditEtudeFile);
-      if (selectedEditProblemFile) formData.append('problem_file', selectedEditProblemFile);
-      if (selectedEditEngFile) formData.append('engineering_file', selectedEditEngFile);
-      if (selectedEditResultFile) formData.append('result_file', selectedEditResultFile);
+      const fileToBase64 = (file) => new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+
+      if (selectedEditEtudeFile) {
+        const b64 = await fileToBase64(selectedEditEtudeFile);
+        formData.append('file_b64', await compressImage(b64));
+      }
+      if (selectedEditProblemFile) {
+        const b64 = await fileToBase64(selectedEditProblemFile);
+        formData.append('problem_file_b64', await compressImage(b64));
+      }
+      if (selectedEditEngFile) {
+        const b64 = await fileToBase64(selectedEditEngFile);
+        formData.append('engineering_file_b64', await compressImage(b64));
+      }
+      if (selectedEditResultFile) {
+        const b64 = await fileToBase64(selectedEditResultFile);
+        formData.append('result_file_b64', await compressImage(b64));
+      }
 
       const res = await fetch('/api/admin/etudes-de-cas', {
         method: 'PUT',
@@ -972,10 +1009,15 @@ export default function AdminDashboard() {
 
       if (res.ok) {
         setEditingEtudeId(null);
+        setSelectedEditEtudeFile(null);
+        setSelectedEditProblemFile(null);
+        setSelectedEditEngFile(null);
+        setSelectedEditResultFile(null);
         fetchEtudes();
-        alert('Étude modifiée avec succès !');
+        alert('Étude modifiée !');
       } else {
-        alert('Erreur lors de la modification.');
+        const resData = await res.json();
+        alert('Erreur lors de la modification : ' + (resData.error || '') + ' ' + (resData.details || ''));
       }
     } catch (err) {
       console.error(err);
