@@ -64,7 +64,7 @@ export default function Realisations() {
                 src={img.url} 
                 alt={img.caption}
                 fill
-                style={{ objectFit: 'cover', transition: 'transform 0.5s ease' }}
+                style={{ objectFit: 'contain', transition: 'transform 0.5s ease', backgroundColor: 'rgba(0,0,0,0.8)' }}
                 className="gallery-image"
               />
               <div style={{
@@ -74,9 +74,7 @@ export default function Realisations() {
                 right: 0,
                 padding: '1.5rem',
                 background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)',
-                color: 'white',
-                transform: 'translateY(100%)',
-                transition: 'transform 0.3s ease'
+                color: 'white'
               }}
               className="gallery-caption"
               >
@@ -88,6 +86,10 @@ export default function Realisations() {
       )}
 
       <style dangerouslySetInnerHTML={{__html: `
+        .gallery-caption {
+          transform: translateY(100%);
+          transition: transform 0.3s ease;
+        }
         .gallery-item:hover {
           transform: translateY(-5px);
           box-shadow: 0 12px 40px var(--neon-blue-glow);
