@@ -618,7 +618,7 @@ export default function AdminDashboard() {
   const [gallery, setGallery] = useState([]);
   const [parts, setParts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('leads'); // 'leads', 'gallery', or 'parts'
+  const [activeTab, setActiveTab] = useState('leads'); // 'leads', 'gallery', 'parts', 'etudes'
 
   // Gallery states
   const [uploadLoading, setUploadLoading] = useState(false);
@@ -631,6 +631,15 @@ export default function AdminDashboard() {
   const [editingPartId, setEditingPartId] = useState(null);
   const [editingPartData, setEditingPartData] = useState({ reference: '', name: '', price: 0, stock: 0, observations: '' });
 
+  // Etudes de cas states
+  const [etudes, setEtudes] = useState([]);
+  const [etudeLoading, setEtudeLoading] = useState(false);
+  const [newEtude, setNewEtude] = useState({ title: '', problem_text: '', engineering_text: '', result_text: '' });
+  const [selectedEtudeFile, setSelectedEtudeFile] = useState(null);
+  const [editingEtudeId, setEditingEtudeId] = useState(null);
+  const [editingEtudeData, setEditingEtudeData] = useState({ title: '', problem_text: '', engineering_text: '', result_text: '' });
+  const [selectedEditEtudeFile, setSelectedEditEtudeFile] = useState(null);
+
   // Authentification simplifiée
   const handleLogin = (e) => {
     e.preventDefault();
@@ -639,6 +648,7 @@ export default function AdminDashboard() {
       fetchLeads();
       fetchGallery();
       fetchParts();
+      fetchEtudes();
     } else {
       alert('Mot de passe incorrect');
     }
@@ -855,6 +865,109 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchEtudes = async () => {
+    try {
+      const res = await fetch('/api/admin/etudes-de-cas');
+      const data = await res.json();
+      setEtudes(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const addEtude = async (e) => {
+    e.preventDefault();
+    setEtudeLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('title', newEtude.title);
+      formData.append('problem_text', newEtude.problem_text);
+      formData.append('engineering_text', newEtude.engineering_text);
+      formData.append('result_text', newEtude.result_text);
+      if (selectedEtudeFile) {
+        formData.append('file', selectedEtudeFile);
+      }
+
+      const res = await fetch('/api/admin/etudes-de-cas', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (res.ok) {
+        setNewEtude({ title: '', problem_text: '', engineering_text: '', result_text: '' });
+        setSelectedEtudeFile(null);
+        e.target.reset();
+        fetchEtudes();
+        alert('Étude de cas ajoutée !');
+      } else {
+        alert('Erreur lors de l\'ajout');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setEtudeLoading(false);
+    }
+  };
+
+  const deleteEtude = async (id) => {
+    if (!window.confirm("Supprimer cette étude de cas ?")) return;
+    try {
+      const res = await fetch('/api/admin/etudes-de-cas', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      if (res.ok) fetchEtudes();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const startEditingEtude = (etude) => {
+    setEditingEtudeId(etude.id);
+    setEditingEtudeData({
+      title: etude.title || '',
+      problem_text: etude.problem_text || '',
+      engineering_text: etude.engineering_text || '',
+      result_text: etude.result_text || ''
+    });
+    setSelectedEditEtudeFile(null);
+  };
+
+  const cancelEditingEtude = () => {
+    setEditingEtudeId(null);
+  };
+
+  const saveEditingEtude = async (id) => {
+    try {
+      const formData = new FormData();
+      formData.append('id', id);
+      formData.append('title', editingEtudeData.title);
+      formData.append('problem_text', editingEtudeData.problem_text);
+      formData.append('engineering_text', editingEtudeData.engineering_text);
+      formData.append('result_text', editingEtudeData.result_text);
+      if (selectedEditEtudeFile) {
+        formData.append('file', selectedEditEtudeFile);
+      }
+
+      const res = await fetch('/api/admin/etudes-de-cas', {
+        method: 'PUT',
+        body: formData
+      });
+
+      if (res.ok) {
+        setEditingEtudeId(null);
+        fetchEtudes();
+        alert('Étude modifiée avec succès !');
+      } else {
+        alert('Erreur lors de la modification.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erreur lors de la modification.');
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <main className="section-container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -887,6 +1000,7 @@ export default function AdminDashboard() {
           if (activeTab === 'leads') fetchLeads();
           else if (activeTab === 'gallery') fetchGallery();
           else if (activeTab === 'parts') fetchParts();
+          else if (activeTab === 'etudes') fetchEtudes();
         }} className="neon-button" style={{ padding: '8px 16px', fontSize: '0.8rem' }}>Actualiser</button>
       </div>
 
@@ -924,6 +1038,17 @@ export default function AdminDashboard() {
           }}
         >
           🛠 Pièces d'occasion
+        </button>
+        <button
+          onClick={() => setActiveTab('etudes')}
+          style={{
+            background: activeTab === 'etudes' ? 'var(--neon-blue)' : 'transparent',
+            color: activeTab === 'etudes' ? '#000' : '#fff',
+            border: activeTab === 'etudes' ? '1px solid var(--neon-blue)' : '1px solid var(--glass-border)',
+            padding: '8px 20px', borderRadius: '4px', cursor: 'pointer', transition: '0.3s', fontWeight: 'bold'
+          }}
+        >
+          📝 Études de cas
         </button>
       </div>
 
@@ -1255,6 +1380,80 @@ export default function AdminDashboard() {
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      ) : activeTab === 'etudes' ? (
+        <div className="glass-panel">
+          <h3 className="mb-4">Ajouter une Étude de cas</h3>
+          <form onSubmit={addEtude} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '3rem', padding: '1.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: '200px' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Titre du projet</label>
+                <input type="text" value={newEtude.title} onChange={e => setNewEtude({...newEtude, title: e.target.value})} className="form-input" required />
+              </div>
+              <div style={{ flex: 1, minWidth: '200px' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Image d'illustration (optionnelle)</label>
+                <input type="file" accept="image/*" onChange={e => setSelectedEtudeFile(e.target.files[0])} className="form-input" />
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: '250px' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Le Problème</label>
+                <textarea value={newEtude.problem_text} onChange={e => setNewEtude({...newEtude, problem_text: e.target.value})} className="form-input" style={{ minHeight: '80px' }} />
+              </div>
+              <div style={{ flex: 1, minWidth: '250px' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Notre Ingénierie (La Solution)</label>
+                <textarea value={newEtude.engineering_text} onChange={e => setNewEtude({...newEtude, engineering_text: e.target.value})} className="form-input" style={{ minHeight: '80px' }} />
+              </div>
+              <div style={{ flex: 1, minWidth: '250px' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Le Résultat</label>
+                <textarea value={newEtude.result_text} onChange={e => setNewEtude({...newEtude, result_text: e.target.value})} className="form-input" style={{ minHeight: '80px' }} />
+              </div>
+            </div>
+
+            <div>
+              <button type="submit" disabled={etudeLoading} className="neon-button">
+                {etudeLoading ? 'Ajout...' : '➕ Ajouter l\'Étude de cas'}
+              </button>
+            </div>
+          </form>
+
+          <h3 className="mb-4">Études de cas existantes</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+            {etudes.length === 0 && <p style={{ color: 'var(--text-secondary)' }}>Aucune étude de cas.</p>}
+            {etudes.map(etude => (
+              <div key={etude.id} style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.3)', padding: '15px' }}>
+                {editingEtudeId === etude.id ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <input type="text" value={editingEtudeData.title} onChange={e => setEditingEtudeData({...editingEtudeData, title: e.target.value})} className="form-input" placeholder="Titre" />
+                    <textarea value={editingEtudeData.problem_text} onChange={e => setEditingEtudeData({...editingEtudeData, problem_text: e.target.value})} className="form-input" placeholder="Problème" style={{ minHeight: '60px' }} />
+                    <textarea value={editingEtudeData.engineering_text} onChange={e => setEditingEtudeData({...editingEtudeData, engineering_text: e.target.value})} className="form-input" placeholder="Ingénierie" style={{ minHeight: '60px' }} />
+                    <textarea value={editingEtudeData.result_text} onChange={e => setEditingEtudeData({...editingEtudeData, result_text: e.target.value})} className="form-input" placeholder="Résultat" style={{ minHeight: '60px' }} />
+                    <input type="file" accept="image/*" onChange={e => setSelectedEditEtudeFile(e.target.files[0])} className="form-input" />
+                    
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                      <button onClick={() => saveEditingEtude(etude.id)} style={{ padding: '6px 12px', background: 'rgba(0,255,100,0.2)', color: '#00ff66', border: '1px solid #00ff66', borderRadius: '4px', flex: 1 }}>💾 Sauver</button>
+                      <button onClick={cancelEditingEtude} style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid var(--glass-border)', borderRadius: '4px', flex: 1 }}>❌ Annuler</button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                      {etude.image_url && <img src={etude.image_url} alt={etude.title} style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />}
+                      <div>
+                        <h4 style={{ margin: '0 0 5px 0', color: '#fff' }}>{etude.title}</h4>
+                        <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Slug: {etude.slug}</p>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+                      <button onClick={() => startEditingEtude(etude)} style={{ padding: '6px 12px', background: 'rgba(0,229,255,0.1)', color: 'var(--neon-blue)', border: '1px solid var(--neon-blue)', borderRadius: '4px', cursor: 'pointer', flex: 1 }}>✏️ Modifier</button>
+                      <button onClick={() => deleteEtude(etude.id)} style={{ padding: '6px', background: 'rgba(255,0,0,0.1)', color: '#ff4444', border: '1px solid #ff4444', borderRadius: '4px', cursor: 'pointer' }}>🗑</button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}

@@ -23,6 +23,7 @@ export default function RootLayout({ children }) {
             <span className="neon-text">STRUCTURAL</span> FORGE
           </a>
           <div>
+            <a href="/etudes-de-cas" style={{color: '#fff', textDecoration: 'none', marginRight: '30px', fontWeight: '500'}}>Études de cas</a>
             <a href="/realisations" style={{color: '#fff', textDecoration: 'none', marginRight: '30px', fontWeight: '500'}}>Réalisations</a>
             <a href="/#contact" className="neon-button" style={{padding: '8px 20px', fontSize: '0.85rem'}}>Demander un devis</a>
           </div>

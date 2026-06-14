@@ -59,6 +59,17 @@ export async function openDB() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
+      CREATE TABLE IF NOT EXISTS etudes_de_cas (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        slug TEXT UNIQUE NOT NULL,
+        image_url TEXT,
+        problem_text TEXT,
+        engineering_text TEXT,
+        result_text TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
       -- Migrations Postgres (au cas où la table existe déjà)
       DO $$
       BEGIN
@@ -178,6 +189,17 @@ export async function openDB() {
         price REAL DEFAULT 0,
         stock INTEGER DEFAULT 0,
         observations TEXT DEFAULT '',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS etudes_de_cas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        slug TEXT UNIQUE NOT NULL,
+        image_url TEXT,
+        problem_text TEXT,
+        engineering_text TEXT,
+        result_text TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
     `);
