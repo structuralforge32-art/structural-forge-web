@@ -17,7 +17,27 @@ export default function RootLayout({ children }) {
 
     <html lang="fr" className={`${inter.variable} ${orbitron.variable}`}>
       <body>
-        <div className="bg-logo-watermark"></div>
+        <video 
+          autoPlay 
+          loop 
+          muted 
+          playsInline 
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            minWidth: '100vw',
+            minHeight: '100vh',
+            width: 'auto',
+            height: 'auto',
+            objectFit: 'cover',
+            transform: 'translate(-50%, -50%)',
+            zIndex: -2,
+            opacity: 0.25
+          }}
+        >
+          <source src="/hero-video.mp4" type="video/mp4" />
+        </video>
         <nav className="navbar">
           <a href="/" className="navbar-brand">
             <span className="neon-text">STRUCTURAL</span> FORGE
