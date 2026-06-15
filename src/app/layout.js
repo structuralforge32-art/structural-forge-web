@@ -24,14 +24,11 @@ export default function RootLayout({ children }) {
           playsInline 
           style={{
             position: 'fixed',
-            top: '50%',
-            left: '50%',
-            minWidth: '100vw',
-            minHeight: '100vh',
-            width: 'auto',
-            height: 'auto',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
             objectFit: 'cover',
-            transform: 'translate(-50%, -50%)',
             zIndex: -2,
             opacity: 0.25
           }}
