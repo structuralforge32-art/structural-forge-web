@@ -4,20 +4,43 @@ export default function Home() {
   return (
     <main>
       {/* Hero Section */}
-      <section className="section-container hero-section">
-        <h1 className="hero-title">
-          <span className="neon-text">STRUCTURAL</span> FORGE
-        </h1>
-        <p className="hero-subtitle neon-text" style={{letterSpacing: '3px', textTransform: 'uppercase', fontSize: '1rem', fontWeight: 'bold'}}>
-          IMPRIMER L'EXCELLENCE, FORGER LA DURÉE
-        </p>
-        <p className="hero-subtitle">
-          Donnez vie à vos idées. Nous concevons et imprimons en 3D vos pièces sur mesure avec une précision absolue, pour les professionnels et les particuliers.
-        </p>
-        <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <a href="/etudes-de-cas" className="neon-button">Du problème à la solution</a>
-          <a href="/realisations" className="neon-button">Réalisations</a>
-          <a href="#contact" className="neon-button">Obtenir un devis</a>
+      <section style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginTop: '-80px' /* Pour compenser la navbar si elle est fixe */ }}>
+        {/* Background Video */}
+        <video 
+          autoPlay 
+          loop 
+          muted 
+          playsInline 
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 0,
+            opacity: 0.35
+          }}
+        >
+          <source src="/hero-video.mp4" type="video/mp4" />
+        </video>
+
+        <div className="section-container" style={{ position: 'relative', zIndex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <h1 className="hero-title" style={{ marginTop: '4rem' }}>
+            <span className="neon-text">STRUCTURAL</span> FORGE
+          </h1>
+          <p className="hero-subtitle neon-text" style={{letterSpacing: '3px', textTransform: 'uppercase', fontSize: '1rem', fontWeight: 'bold'}}>
+            IMPRIMER L'EXCELLENCE, FORGER LA DURÉE
+          </p>
+          <p className="hero-subtitle">
+            Donnez vie à vos idées. Nous concevons et imprimons en 3D vos pièces sur mesure avec une précision absolue, pour les professionnels et les particuliers.
+          </p>
+          <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <a href="/etudes-de-cas" className="neon-button">Du problème à la solution</a>
+            <a href="/realisations" className="neon-button">Réalisations</a>
+            <a href="#contact" className="neon-button">Obtenir un devis</a>
+          </div>
         </div>
       </section>
 
