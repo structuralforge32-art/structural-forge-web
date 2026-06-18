@@ -442,7 +442,14 @@ function LeadRow({ lead, updateStatus, deleteLead }) {
           <small style={{ color: 'var(--text-secondary)' }}>{lead.phone}</small>
         </td>
         <td style={{ padding: '1rem', maxWidth: '300px', verticalAlign: 'top' }}>
-          <strong style={{ display: 'block', marginBottom: '0.5rem', color: '#fff' }}>{lead.type}</strong>
+          <strong style={{ display: 'block', marginBottom: '0.5rem', color: '#fff' }}>
+            {lead.type}
+            {lead.internal_notes && lead.internal_notes.startsWith("Lead depuis l'article") && (
+              <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--neon-blue)', marginTop: '4px', fontWeight: 'normal', background: 'rgba(0,229,255,0.1)', padding: '2px 6px', borderRadius: '4px', width: 'fit-content' }}>
+                🔗 {lead.internal_notes.split('\n')[0]}
+              </span>
+            )}
+          </strong>
           <div style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
             {lead.message}
           </div>
