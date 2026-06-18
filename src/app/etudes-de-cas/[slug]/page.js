@@ -129,7 +129,7 @@ export default async function EtudeDeCasDetail({ params }) {
             <Link href="/#contact" className="neon-button">
               Demander un devis
             </Link>
-            <Link href={`/#contact?ref_article=${encodeURIComponent(etude.title)}`} className="neon-button" style={{ background: 'var(--neon-blue)', color: '#000' }}>
+            <Link href={`/?ref_article=${encodeURIComponent(etude.title)}#contact`} className="neon-button" style={{ background: 'var(--neon-blue)', color: '#000' }}>
               Commander cette pièce
             </Link>
           </div>
