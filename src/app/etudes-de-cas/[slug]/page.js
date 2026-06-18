@@ -125,9 +125,14 @@ export default async function EtudeDeCasDetail({ params }) {
           <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
             Contactez-nous pour discuter de votre besoin et obtenir un devis sur mesure.
           </p>
-          <Link href="/#contact" className="neon-button">
-            Demander un devis
-          </Link>
+          <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link href="/#contact" className="neon-button">
+              Demander un devis
+            </Link>
+            <Link href={`/#contact?ref_article=${encodeURIComponent(etude.title)}`} className="neon-button" style={{ background: 'var(--neon-blue)', color: '#000' }}>
+              Commander cette pièce
+            </Link>
+          </div>
         </div>
 
       </div>

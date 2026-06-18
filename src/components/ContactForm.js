@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -7,10 +7,21 @@ export default function ContactForm() {
     email: '',
     phone: '',
     type: "Pièces pour l'automobile",
-    message: ''
+    message: '',
+    source_article: ''
   });
   const [status, setStatus] = useState('idle'); // idle, loading, success, error
   const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const article = params.get('ref_article');
+      if (article) {
+        setFormData(prev => ({ ...prev, source_article: article }));
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,7 +38,7 @@ export default function ContactForm() {
       
       if (res.ok) {
         setStatus('success');
-        setFormData({ name: '', email: '', phone: '', type: "Pièces pour l'automobile", message: '' });
+        setFormData({ name: '', email: '', phone: '', type: "Pièces pour l'automobile", message: '', source_article: '' });
       } else {
         throw new Error(data.error || "Erreur lors de l'envoi");
       }

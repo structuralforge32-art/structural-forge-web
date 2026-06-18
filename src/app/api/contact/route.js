@@ -5,7 +5,7 @@ import { sendAdminNotification } from '@/lib/mail';
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { name, email, phone, type, message } = body;
+    const { name, email, phone, type, message, source_article } = body;
 
     if (!name || !email || !type || !message) {
       return NextResponse.json({ error: 'Champs obligatoires manquants' }, { status: 400 });
@@ -18,9 +18,11 @@ export async function POST(req) {
       'Création du projet': new Date().toISOString() 
     });
 
+    const internalNotes = source_article ? `Lead depuis l'article : ${source_article}` : '';
+
     const result = await db.run(
-      'INSERT INTO leads (name, email, phone, type, message, status, token, history) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [name, email, phone || '', type, message, 'Création du projet', projectToken, initialHistory]
+      'INSERT INTO leads (name, email, phone, type, message, status, token, history, internal_notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [name, email, phone || '', type, message, 'Création du projet', projectToken, initialHistory, internalNotes]
     );
 
     try {
