@@ -18,7 +18,7 @@ export default function ContactForm() {
       const params = new URLSearchParams(window.location.search);
       const article = params.get('ref_article');
       if (article) {
-        setFormData(prev => ({ ...prev, source_article: article }));
+        setFormData(prev => ({ ...prev, source_article: article, type: "Commande suite à un article" }));
       }
     }
   }, []);
@@ -99,6 +99,7 @@ export default function ContactForm() {
           <option value="Pièces pour l'automobile">Pièces pour l'automobile</option>
           <option value="Outillages / consommable">Outillages / consommable</option>
           <option value="Réparation objet de A à Z">Réparation objet de A à Z</option>
+          <option value="Commande suite à un article">Commande suite à un article</option>
           <option value="Autre">Autre</option>
         </select>
       </div>
